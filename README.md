@@ -76,7 +76,9 @@ Install full Xcode, open `Package.swift`, and run DiscDock on My Mac. To build a
 bash scripts/build-app.sh
 ```
 
-The script runs tests, builds Release, creates the icon's macOS sizes, ad hoc signs the app, verifies its signature, and creates `dist/DiscDock.app.zip`. It selects the installed Xcode developer tools for this run without changing the system-wide setting. Builds use a temporary directory to avoid iCloud/File Provider metadata affecting signatures; set `DISCDOCK_BUILD_DIR` to override it. Prefer the ZIP when moving the app out of Documents.
+The script runs tests, builds Release, creates the icon's macOS sizes, enables hardened runtime, signs the app, verifies its signature, and creates `dist/DiscDock.app.zip`. Local builds use an ad hoc signature by default. Set `DISCDOCK_SIGNING_IDENTITY` to use an installed Developer ID Application certificate. It selects the installed Xcode developer tools for this run without changing the system-wide setting. Builds use a temporary directory to avoid iCloud/File Provider metadata affecting signatures; set `DISCDOCK_BUILD_DIR` to override it. Prefer the ZIP when moving the app out of Documents.
+
+For a public signed release, [the release guide](docs/RELEASING.md) explains the required Apple account setup and `scripts/notarize-release.sh`. That workflow requires Apple's acceptance, stapled tickets, and Gatekeeper checks before producing versioned ZIP and drag-to-Applications DMG artifacts. The existing 0.8 public preview remains unnotarized.
 
 To run the normal tests separately:
 

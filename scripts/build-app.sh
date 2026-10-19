@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+SIGNING_IDENTITY="${DISCDOCK_SIGNING_IDENTITY:--}"
+if [[ "${DISCDOCK_REQUIRE_DEVELOPER_ID:-0}" == 1 && "$SIGNING_IDENTITY" != "Developer ID Application:"* ]]; then
+    printf 'A Developer ID Application signing identity is required for a public release.\n' >&2
+    exit 1
+fi
 # XCTest in Swift's Xcode build system requires the full Xcode developer tree.
 # Select it for this script only; leave the Mac's xcode-select preference alone.
 if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == */CommandLineTools && -d /Applications/Xcode.app/Contents/Developer ]]; then
@@ -38,7 +43,19 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
-codesign --force --deep --sign - "$APP"
+if [[ -n "${DISCDOCK_VERSION:-}" ]]; then
+    [[ "$DISCDOCK_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { printf 'Use a numeric version such as 0.8.1.\n' >&2; exit 1; }
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $DISCDOCK_VERSION" "$APP/Contents/Info.plist"
+fi
+if [[ -n "${DISCDOCK_BUILD_NUMBER:-}" ]]; then
+    [[ "$DISCDOCK_BUILD_NUMBER" =~ ^[0-9]+$ ]] || { printf 'Use a numeric build number.\n' >&2; exit 1; }
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $DISCDOCK_BUILD_NUMBER" "$APP/Contents/Info.plist"
+fi
+if [[ "$SIGNING_IDENTITY" == - ]]; then
+    codesign --force --options runtime --timestamp=none --sign - "$APP"
+else
+    codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$APP"
+fi
 codesign --verify --deep --strict "$APP"
 mkdir -p "$PWD/dist"
 # Archive the verified local bundle directly, before File Provider can attach

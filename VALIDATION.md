@@ -1,5 +1,14 @@
 # DiscDock validation
 
+## Unreleased: Developer ID and notarization workflow
+
+The build script now enables hardened runtime and accepts a Developer ID Application signing identity. The separate release workflow submits the app and disk image to Apple, requires an Accepted result, staples tickets, validates signatures/tickets, checks Gatekeeper, and checks that the final ZIP retains its app ticket. It does not publish to GitHub automatically.
+
+- A local 0.8.1/build 10 preparation build passed 43 automated tests, with two opt-in tests skipped. Its ad hoc signature verified with the hardened-runtime flag. No additional runtime exceptions or debug entitlements were added.
+- An isolated preview bundle successfully launched the installed HandBrakeCLI, scanned the existing generated six-second source, and advanced to Show. Production app preferences were not used. This checks that enabling hardened runtime retains the external-reader workflow.
+- Both scripts pass shell syntax checking. The release workflow refuses to proceed without an explicit Developer ID Application identity and Keychain profile. The normal build refuses ad hoc signing when Developer ID is required.
+- No Developer ID Application identity was available on the preparation Mac. No Apple notarization submission was made and no notarized artifact was produced. The complete certificate-backed signing/submission/stapling/Gatekeeper pipeline remains unverified until those credentials are available. The published 0.8 preview is unchanged and remains unnotarized.
+
 ## Version 0.8: app identity and guided setup
 
 The app bundle now includes a full macOS icon family generated from the disc-to-video artwork in Assets. The first-run assistant introduces the workflow, checks the local reader, offers dependency installation or official download guidance, and explains online show lookup before saving setup completion. Setup can be deferred and reopened from Help or Settings.
