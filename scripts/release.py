@@ -10,6 +10,7 @@ import plistlib
 import re
 import subprocess
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -90,7 +91,14 @@ def prepare(directory, tools, archive):
         for command in [['codesign', '--verify', '--deep', '--strict', str(app)],
                         ['xcrun', 'stapler', 'validate', str(app)],
                         ['spctl', '--assess', '--type', 'execute', str(app)]]:
-            subprocess.run(command, check=True)
+            attempts = 1 if command[0] == 'codesign' else 5
+            for attempt in range(attempts):
+                result = subprocess.run(command)
+                if result.returncode == 0:
+                    break
+                if attempt + 1 == attempts:
+                    result.check_returncode()
+                time.sleep(5)
         signature = run('codesign', '-dv', '--verbose=4', str(app), stderr=subprocess.STDOUT)
         if 'TeamIdentifier=UJ27S8B847' not in signature or 'Authority=Developer ID Application:' not in signature:
             raise ValueError('Unexpected Developer ID signing team')

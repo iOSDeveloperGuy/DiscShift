@@ -84,10 +84,11 @@ jobs:
             gh release download "v$version" --repo "$GITHUB_REPOSITORY" --pattern "DiscShift-$version-macOS.zip" --dir dist
           fi
           python3 scripts/release.py prepare --tools "$RUNNER_TEMP/discshift-build/artifacts/sparkle/Sparkle/bin" --archive "dist/DiscShift-$version-macOS.zip"
-      - name: Keep verified artifacts for release recovery
+      - name: Keep release artifacts and notarization reports
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: verified-release
+          name: release-artifacts
           path: |
             dist/updates/
             dist/*.dmg

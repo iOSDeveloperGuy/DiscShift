@@ -56,34 +56,46 @@ notarize() {
     printf 'Apple accepted submission %s\n' "$submission"
 }
 
+# Apple's ticket delivery and Gatekeeper services can drop connections after
+# accepting a submission. Retry validation, never the submission itself.
+network_check() {
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        if "$@"; then return 0; fi
+        if [[ "$attempt" == 5 ]]; then return 1; fi
+        printf 'Network-dependent release check failed; retrying (%s/5).\n' "$attempt" >&2
+        sleep 5
+    done
+}
+
 ditto -c -k --norsrc --keepParent "$APP" "$STAGING_DIR/DiscShift-submit.zip"
 notarize "$STAGING_DIR/DiscShift-submit.zip" "$REPORT_DIR/app.json"
-xcrun stapler staple "$APP"
-xcrun stapler validate "$APP"
+network_check xcrun stapler staple "$APP"
+network_check xcrun stapler validate "$APP"
 codesign --verify --deep --strict "$APP"
-spctl --assess --type execute --verbose=2 "$APP"
+network_check spctl --assess --type execute --verbose=2 "$APP"
 
 # A simple drag-to-Applications disk image, containing the stapled app.
 mkdir -p "$STAGING_DIR/image"
 ditto "$APP" "$STAGING_DIR/image/DiscShift.app"
-xcrun stapler validate "$STAGING_DIR/image/DiscShift.app"
+network_check xcrun stapler validate "$STAGING_DIR/image/DiscShift.app"
 codesign --verify --deep --strict "$STAGING_DIR/image/DiscShift.app"
 ln -s /Applications "$STAGING_DIR/image/Applications"
 DMG="$STAGING_DIR/DiscShift-$VERSION-macOS.dmg"
 hdiutil create -volname DiscShift -srcfolder "$STAGING_DIR/image" -format UDZO -ov "$DMG"
 codesign --force --timestamp --sign "$DISCSHIFT_SIGNING_IDENTITY" "$DMG"
 notarize "$DMG" "$REPORT_DIR/dmg.json"
-xcrun stapler staple "$DMG"
-xcrun stapler validate "$DMG"
+network_check xcrun stapler staple "$DMG"
+network_check xcrun stapler validate "$DMG"
 codesign --verify --strict "$DMG"
 hdiutil verify "$DMG"
-spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG"
+network_check spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG"
 
 # Publishable artifacts get their final names only after every check passes.
 ditto -c -k --keepParent "$APP" "$STAGING_DIR/DiscShift-$VERSION-macOS.zip"
 mkdir -p "$STAGING_DIR/zip-check"
 ditto -x -k "$STAGING_DIR/DiscShift-$VERSION-macOS.zip" "$STAGING_DIR/zip-check"
-xcrun stapler validate "$STAGING_DIR/zip-check/DiscShift.app"
+network_check xcrun stapler validate "$STAGING_DIR/zip-check/DiscShift.app"
 codesign --verify --deep --strict "$STAGING_DIR/zip-check/DiscShift.app"
 cp -X "$STAGING_DIR/DiscShift-$VERSION-macOS.zip" dist/
 cp -X "$DMG" dist/
