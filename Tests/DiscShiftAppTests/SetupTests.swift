@@ -1,6 +1,6 @@
 import XCTest
 import Darwin
-@testable import DiscDock
+@testable import DiscShift
 
 final class SetupTests: XCTestCase {
     private func fixture(script: String) throws -> (URL, URL) {
@@ -17,7 +17,7 @@ final class SetupTests: XCTestCase {
     @MainActor func testRequiresSuccessfulCheckAndPersistsCompletion() async throws {
         let (root, reader) = try fixture(script: valid)
         defer { try? FileManager.default.removeItem(at: root) }
-        let defaults = UserDefaults(suiteName: "DiscDockSetupTests-" + UUID().uuidString)!
+        let defaults = UserDefaults(suiteName: "DiscShiftSetupTests-" + UUID().uuidString)!
         defaults.set(reader.path, forKey: "handbrake")
         let model = AppModel(defaults: defaults, discoverMountedDiscs: false)
         XCTAssertTrue(model.showingSetup)
@@ -46,7 +46,7 @@ final class SetupTests: XCTestCase {
     @MainActor func testH264OnlyReaderSelectsAvailableCodec() async throws {
         let (root, reader) = try fixture(script: "printf 'HandBrake 1.11.2\\nvt_h264\\n'")
         defer { try? FileManager.default.removeItem(at: root) }
-        let defaults = UserDefaults(suiteName: "DiscDockSetupTests-" + UUID().uuidString)!
+        let defaults = UserDefaults(suiteName: "DiscShiftSetupTests-" + UUID().uuidString)!
         defaults.set(reader.path, forKey: "handbrake")
         let model = AppModel(defaults: defaults, discoverMountedDiscs: false)
         model.setup.check(); await model.setup.task?.value

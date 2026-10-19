@@ -1,6 +1,6 @@
 import SwiftUI
 import AppKit
-import DiscDockCore
+import DiscShiftCore
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
@@ -31,7 +31,7 @@ struct ContentView: View {
                     .help("Show reader activity")
             }
             ToolbarItem {
-                SettingsLink { Label("Settings", systemImage: "gearshape") }.help("DiscDock Settings")
+                SettingsLink { Label("Settings", systemImage: "gearshape") }.help("DiscShift Settings")
             }
         }
         .sheet(isPresented: $model.showingActivity) { ActivityView().environmentObject(model) }
@@ -88,7 +88,7 @@ struct ContentView: View {
         .padding(.horizontal, 24).padding(.vertical, 16)
     }
     private var nextLabel: String {
-        if model.step == .source && !model.readerAvailable { return "Set Up DiscDock…" }
+        if model.step == .source && !model.readerAvailable { return "Set Up DiscShift…" }
         if model.step == .source && model.source == nil { return "Choose Source…" }
         if model.step == .source && model.choices.isEmpty { return "Scan Source" }
         if model.step == .identify { return model.enteringShowManually ? "Continue to Episodes" : "Use This Show" }
@@ -169,7 +169,7 @@ private struct SourceStepView: View {
                 VStack(spacing: 10) {
                     Text(model.scanning ? "Reading your source" : "Start with your disc")
                         .font(.largeTitle).fontWeight(.bold)
-                    Text(model.scanning ? "DiscDock is finding the titles, chapters, and tracks. This can take a few minutes on a DVD." : "Bring your DVD episodes into Jellyfin. We’ll help you choose the titles, name the episodes, and save them to your library.")
+                    Text(model.scanning ? "DiscShift is finding the titles, chapters, and tracks. This can take a few minutes on a DVD." : "Bring your DVD episodes into Jellyfin. We’ll help you choose the titles, name the episodes, and save them to your library.")
                         .foregroundStyle(.secondary).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 }
                 if let source = model.source {
@@ -207,7 +207,7 @@ private struct SourceStepView: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Set up your DVD reader").fontWeight(.semibold)
                                 Text("We’ll help you find or install the reader before scanning a source.").foregroundStyle(.secondary)
-                                Button("Set Up DiscDock…") { model.openSetup() }
+                                Button("Set Up DiscShift…") { model.openSetup() }
                             }
                             Spacer()
                         }.padding(8)
@@ -278,7 +278,7 @@ private struct ExportStepView: View {
                     }.padding(12)
                 }
                 if model.busy {
-                    Label("You can keep using your Mac. DiscDock will keep it awake while exporting.", systemImage: "info.circle")
+                    Label("You can keep using your Mac. DiscShift will keep it awake while exporting.", systemImage: "info.circle")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             }.frame(maxWidth: 660).padding(32).frame(maxWidth: .infinity)
@@ -304,12 +304,12 @@ struct ReaderSettingsView: View {
                     Button("Choose Executable…") { model.chooseEngine() }
                 }
             } header: { Text("DVD reader") } footer: {
-                Text("DiscDock uses your separately installed HandBrakeCLI to read and encode sources.")
+                Text("DiscShift uses your separately installed HandBrakeCLI to read and encode sources.")
             }
             Section {
                 Toggle("Automatically identify shows online", isOn: $model.automaticShowLookup)
             } header: { Text("Show identification") } footer: {
-                Text("After scanning, DiscDock searches TVMaze using the disc name. Video, audio, and local paths are never uploaded. You can always enter show details manually.")
+                Text("After scanning, DiscShift searches TVMaze using the disc name. Video, audio, and local paths are never uploaded. You can always enter show details manually.")
             }
             Section {
                 TextField("Library folder", text: $model.libraryDirectory).textFieldStyle(.roundedBorder)
@@ -343,7 +343,7 @@ private struct ActivityView: View {
                     .frame(maxWidth: .infinity, alignment: .topLeading).padding(12)
             }.background(Color(nsColor: .textBackgroundColor)).border(Color(nsColor: .separatorColor))
             HStack {
-                Text(model.busy ? "Updating as DiscDock works" : "All activity stays on this Mac").font(.callout).foregroundStyle(.secondary)
+                Text(model.busy ? "Updating as DiscShift works" : "All activity stays on this Mac").font(.callout).foregroundStyle(.secondary)
                 Spacer()
                 Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
             }

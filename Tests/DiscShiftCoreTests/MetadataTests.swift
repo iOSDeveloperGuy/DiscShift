@@ -1,5 +1,5 @@
 import XCTest
-@testable import DiscDockCore
+@testable import DiscShiftCore
 
 final class MetadataTests: XCTestCase {
     func testDiscLabelIsSearchHintNotAnEpisodeAssignment() {
@@ -28,7 +28,7 @@ final class MetadataTests: XCTestCase {
         CatalogURLProtocol.respond = { request in
             XCTAssertEqual(request.url?.host, "api.tvmaze.com")
             XCTAssertEqual(URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems?.first?.value, "A Show & Friends")
-            XCTAssertTrue(request.value(forHTTPHeaderField: "User-Agent")?.contains("DiscDock") == true)
+            XCTAssertTrue(request.value(forHTTPHeaderField: "User-Agent")?.contains("DiscShift") == true)
             return (200, Data(#"[{"show":{"id":1,"name":"A Show","premiered":"1978-01-08"}},{"show":{"id":2,"name":"A Show","premiered":"2020-09-01"}}]"#.utf8))
         }
         let shows = try await TVMazeClient(session: session).search(query: "A Show & Friends")
@@ -44,7 +44,8 @@ final class MetadataTests: XCTestCase {
         }
     }
     func testLiveMetadataLookupWhenExplicitlyEnabled() async throws {
-        guard ProcessInfo.processInfo.environment["DISCDOCK_TEST_METADATA"] == "1" else { throw XCTSkip("Set DISCDOCK_TEST_METADATA=1 for live TVMaze verification") }
+        let env = ProcessInfo.processInfo.environment
+        guard (env["DISCSHIFT_TEST_METADATA"] ?? env["DISCDOCK_TEST_METADATA"]) == "1" else { throw XCTSkip("Set DISCSHIFT_TEST_METADATA=1 for live TVMaze verification") }
         let query = DiscLabelHint.query("ALLCREATURESGREATANDSMALLDISC1", words: DiscLabelHint.systemWords)
         let client = TVMazeClient()
         let shows = try await client.search(query: query)

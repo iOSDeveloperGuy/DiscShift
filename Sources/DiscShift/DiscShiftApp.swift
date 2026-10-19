@@ -1,11 +1,11 @@
 import SwiftUI
 import AppKit
 
-@main @MainActor struct DiscDockApp: App {
+@main @MainActor struct DiscShiftApp: App {
     @StateObject private var model = AppModel()
-    @NSApplicationDelegateAdaptor(DiscDockDelegate.self) private var appDelegate
+    @NSApplicationDelegateAdaptor(DiscShiftDelegate.self) private var appDelegate
     var body: some Scene {
-        Window("DiscDock", id: "main") {
+        Window("DiscShift", id: "main") {
             ContentView().environmentObject(model)
                 .frame(minWidth: 800, minHeight: 640)
                 .onAppear { appDelegate.model = model }
@@ -26,8 +26,8 @@ import AppKit
                 Button("Show Activity") { model.showingActivity = true }.keyboardShortcut("l", modifiers: [.command, .option])
             }
             CommandGroup(replacing: .help) {
-                Button("Set Up DiscDock…") { model.openSetup() }.disabled(model.busy)
-                Link("DiscDock Help", destination: URL(string: "https://github.com/iOSDeveloperGuy/DiscDock#readme")!)
+                Button("Set Up DiscShift…") { model.openSetup() }.disabled(model.busy)
+                Link("DiscShift Help", destination: URL(string: "https://github.com/iOSDeveloperGuy/DiscShift#readme")!)
             }
         }
         Settings {
@@ -36,7 +36,7 @@ import AppKit
     }
 }
 
-@MainActor final class DiscDockDelegate: NSObject, NSApplicationDelegate {
+@MainActor final class DiscShiftDelegate: NSObject, NSApplicationDelegate {
     weak var model: AppModel?
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if let model, model.setup.isWorking {

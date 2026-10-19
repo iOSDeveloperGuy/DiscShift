@@ -1,6 +1,6 @@
 import AppKit
 import SwiftUI
-import DiscDockCore
+import DiscShiftCore
 
 struct EpisodeChoice: Identifiable {
     var id: Int { title.id }
@@ -343,7 +343,7 @@ private struct OrderSnapshot: Equatable {
                                      captureOutput: { help = String((help + $0).suffix(100_000)) })
                 if stopped { throw CancellationError() }
                 guard let first = jobs.first, HardwareEncoderEvidence.advertises(first.encoder, help: help) else {
-                    throw EngineFailure(message: "This HandBrakeCLI does not offer the selected Mac hardware encoder. Update HandBrakeCLI or choose the other format. DiscDock won’t switch to a CPU encoder.")
+                    throw EngineFailure(message: "This HandBrakeCLI does not offer the selected Mac hardware encoder. Update HandBrakeCLI or choose the other format. DiscShift won’t switch to a CPU encoder.")
                 }
             } catch {
                 for i in jobs.indices { jobs[i].status = stopped || i > 0 ? "Canceled" : "Failed" }

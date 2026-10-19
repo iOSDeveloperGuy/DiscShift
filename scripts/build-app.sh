@@ -1,8 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-SIGNING_IDENTITY="${DISCDOCK_SIGNING_IDENTITY:--}"
-if [[ "${DISCDOCK_REQUIRE_DEVELOPER_ID:-0}" == 1 && "$SIGNING_IDENTITY" != "Developer ID Application:"* ]]; then
+# Preserve the original automation variables for existing local setups.
+SIGNING_IDENTITY="${DISCSHIFT_SIGNING_IDENTITY:-${DISCDOCK_SIGNING_IDENTITY:--}}"
+export DISCSHIFT_VERSION="${DISCSHIFT_VERSION:-${DISCDOCK_VERSION:-}}"
+export DISCSHIFT_BUILD_NUMBER="${DISCSHIFT_BUILD_NUMBER:-${DISCDOCK_BUILD_NUMBER:-}}"
+if [[ "${DISCSHIFT_REQUIRE_DEVELOPER_ID:-${DISCDOCK_REQUIRE_DEVELOPER_ID:-0}}" == 1 && "$SIGNING_IDENTITY" != "Developer ID Application:"* ]]; then
     printf 'A Developer ID Application signing identity is required for a public release.\n' >&2
     exit 1
 fi
@@ -13,13 +16,13 @@ if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == */CommandLineTools && -
 fi
 # Keep generated bundles outside iCloud/File Provider folders. Their Finder
 # metadata can cause codesign to reject otherwise valid test and app bundles.
-BUILD_DIR="${DISCDOCK_BUILD_DIR:-${TMPDIR:-/tmp}/discdock-build-$UID}"
+BUILD_DIR="${DISCSHIFT_BUILD_DIR:-${DISCDOCK_BUILD_DIR:-${TMPDIR:-/tmp}/discshift-build-$UID}}"
 swift test --scratch-path "$BUILD_DIR"
 swift build -c release --scratch-path "$BUILD_DIR"
 BIN_DIR="$(swift build -c release --scratch-path "$BUILD_DIR" --show-bin-path)"
-APP="$BUILD_DIR/DiscDock.app"
+APP="$BUILD_DIR/DiscShift.app"
 mkdir -p "$APP/Contents/MacOS"
-cp -X "$BIN_DIR/DiscDock" "$APP/Contents/MacOS/DiscDock"
+cp -X "$BIN_DIR/DiscShift" "$APP/Contents/MacOS/DiscShift"
 ICONSET="$BUILD_DIR/AppIcon.iconset"
 mkdir -p "$ICONSET" "$APP/Contents/Resources"
 for size in 16 32 128 256 512; do
@@ -32,24 +35,25 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleExecutable</key><string>DiscDock</string>
+<key>CFBundleExecutable</key><string>DiscShift</string>
 <key>CFBundleIdentifier</key><string>com.iosdeveloperguy.discdock</string>
-<key>CFBundleName</key><string>DiscDock</string>
+<key>CFBundleName</key><string>DiscShift</string>
+<key>CFBundleDisplayName</key><string>DiscShift</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.8.0</string>
-<key>CFBundleVersion</key><string>9</string>
+<key>CFBundleShortVersionString</key><string>0.8.1</string>
+<key>CFBundleVersion</key><string>10</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
-if [[ -n "${DISCDOCK_VERSION:-}" ]]; then
-    [[ "$DISCDOCK_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { printf 'Use a numeric version such as 0.8.1.\n' >&2; exit 1; }
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $DISCDOCK_VERSION" "$APP/Contents/Info.plist"
+if [[ -n "${DISCSHIFT_VERSION:-}" ]]; then
+    [[ "$DISCSHIFT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { printf 'Use a numeric version such as 0.8.1.\n' >&2; exit 1; }
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $DISCSHIFT_VERSION" "$APP/Contents/Info.plist"
 fi
-if [[ -n "${DISCDOCK_BUILD_NUMBER:-}" ]]; then
-    [[ "$DISCDOCK_BUILD_NUMBER" =~ ^[0-9]+$ ]] || { printf 'Use a numeric build number.\n' >&2; exit 1; }
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $DISCDOCK_BUILD_NUMBER" "$APP/Contents/Info.plist"
+if [[ -n "${DISCSHIFT_BUILD_NUMBER:-}" ]]; then
+    [[ "$DISCSHIFT_BUILD_NUMBER" =~ ^[0-9]+$ ]] || { printf 'Use a numeric build number.\n' >&2; exit 1; }
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $DISCSHIFT_BUILD_NUMBER" "$APP/Contents/Info.plist"
 fi
 if [[ "$SIGNING_IDENTITY" == - ]]; then
     codesign --force --options runtime --timestamp=none --sign - "$APP"
@@ -60,8 +64,8 @@ codesign --verify --deep --strict "$APP"
 mkdir -p "$PWD/dist"
 # Archive the verified local bundle directly, before File Provider can attach
 # Finder metadata. Use this ZIP when moving the app out of an iCloud folder.
-ditto -c -k --norsrc --keepParent "$APP" "$PWD/dist/DiscDock.app.zip"
-ditto --noextattr --norsrc "$APP" "$PWD/dist/DiscDock.app"
+ditto -c -k --norsrc --keepParent "$APP" "$PWD/dist/DiscShift.app.zip"
+ditto --noextattr --norsrc "$APP" "$PWD/dist/DiscShift.app"
 # File Provider may attach FinderInfo to the destination bundle during copy.
-xattr -cr "$PWD/dist/DiscDock.app"
-printf 'Built %s\nArchive: %s\n' "$PWD/dist/DiscDock.app" "$PWD/dist/DiscDock.app.zip"
+xattr -cr "$PWD/dist/DiscShift.app"
+printf 'Built %s\nArchive: %s\n' "$PWD/dist/DiscShift.app" "$PWD/dist/DiscShift.app.zip"

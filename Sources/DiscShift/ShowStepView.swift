@@ -1,5 +1,5 @@
 import SwiftUI
-import DiscDockCore
+import DiscShiftCore
 
 struct ShowStepView: View {
     @EnvironmentObject private var model: AppModel

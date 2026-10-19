@@ -1,6 +1,6 @@
 import Foundation
 import Darwin
-import DiscDockCore
+import DiscShiftCore
 
 struct EngineFailure: LocalizedError {
     let message: String

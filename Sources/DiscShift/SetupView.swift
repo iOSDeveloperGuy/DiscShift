@@ -43,7 +43,7 @@ struct SetupView: View {
     private var primaryLabel: String {
         if page == 0 { return "Check My Mac" }
         if page == 1 { return setup.isReady ? "Continue" : "Check Again" }
-        return "Start Using DiscDock"
+        return "Start Using DiscShift"
     }
     private func advance() {
         if page == 0 { page = 1; setup.check() }
@@ -56,7 +56,7 @@ struct SetupView: View {
             Text("Your discs. Your library.").font(.largeTitle).fontWeight(.bold)
             Text("Turn your DVD episodes into smaller, neatly named files for your TV library. Let’s get this Mac ready.")
                 .font(.title3).foregroundStyle(.secondary)
-            feature("opticaldisc", "Choose a disc", "DiscDock finds the titles on your DVD or in a video file.")
+            feature("opticaldisc", "Choose a disc", "DiscShift finds the titles on your DVD or in a video file.")
             feature("list.number", "Match your episodes", "Find the show online, then confirm the episode order.")
             feature("folder", "Save to your library", "Use Apple hardware encoding and the file type you prefer.")
             Text("Setup checks for a separate reader called HandBrakeCLI. If it’s missing, we’ll help you install it.")
@@ -94,7 +94,7 @@ struct SetupView: View {
                             Text("Uses your existing Homebrew installation to download HandBrakeCLI and its required components.").font(.caption).foregroundStyle(.secondary)
                         } else {
                             Link("Download HandBrakeCLI…", destination: URL(string: "https://handbrake.fr/downloads2.php")!)
-                            Text("Download the macOS command-line package from HandBrake. Open it, then choose HandBrakeCLI below. The graphical HandBrake app alone isn’t the reader DiscDock needs.").font(.callout).foregroundStyle(.secondary)
+                            Text("Download the macOS command-line package from HandBrake. Open it, then choose HandBrakeCLI below. The graphical HandBrake app alone isn’t the reader DiscShift needs.").font(.callout).foregroundStyle(.secondary)
                         }
                         Button("Choose Downloaded Reader…") { setup.chooseReader() }
                     }
@@ -145,7 +145,7 @@ struct SetupView: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     Toggle("Find show details online", isOn: $model.automaticShowLookup)
-                    Text("DiscDock sends the disc name or your search text to TVMaze. Your videos and local paths stay on this Mac. You’ll always confirm the episode order before exporting.").font(.callout).foregroundStyle(.secondary)
+                    Text("DiscShift sends the disc name or your search text to TVMaze. Your videos and local paths stay on this Mac. You’ll always confirm the episode order before exporting.").font(.callout).foregroundStyle(.secondary)
                     Link("About TVMaze", destination: URL(string: "https://www.tvmaze.com/api")!)
                 }.padding(10)
             }

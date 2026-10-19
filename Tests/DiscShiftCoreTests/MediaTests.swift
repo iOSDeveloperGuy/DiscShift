@@ -1,5 +1,5 @@
 import XCTest
-@testable import DiscDockCore
+@testable import DiscShiftCore
 
 final class MediaTests: XCTestCase {
     func testScanAcrossEveryPossibleChunkBoundary() throws {

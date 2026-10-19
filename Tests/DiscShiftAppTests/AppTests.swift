@@ -1,6 +1,6 @@
 import XCTest
-import DiscDockCore
-@testable import DiscDock
+import DiscShiftCore
+@testable import DiscShift
 
 final class AppTests: XCTestCase {
     @MainActor private func fixture(script: String, advertisesHardware: Bool = true, confirmsHardware: Bool = true) throws -> (AppModel, URL) {
@@ -12,7 +12,7 @@ final class AppTests: XCTestCase {
         let preamble = "if [ \"$1\" = \"--help\" ]; then printf '\(capabilities)\\n'; exit 0; fi\n"
         try Data(("#!/bin/sh\n" + preamble + proof + script).utf8).write(to: reader)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: reader.path)
-        let defaults = UserDefaults(suiteName: "DiscDockTests-" + UUID().uuidString)!
+        let defaults = UserDefaults(suiteName: "DiscShiftTests-" + UUID().uuidString)!
         defaults.set(false, forKey: "automaticShowLookup")
         let model = AppModel(defaults: defaults, discoverMountedDiscs: false)
         model.executable = reader.path
@@ -109,7 +109,7 @@ final class AppTests: XCTestCase {
         model.continueWizard(); XCTAssertEqual(model.step, .episodes)
     }
     @MainActor func testNewSessionContainsNoShowOrTitleData() {
-        let defaults = UserDefaults(suiteName: "DiscDockTests-" + UUID().uuidString)!
+        let defaults = UserDefaults(suiteName: "DiscShiftTests-" + UUID().uuidString)!
         defaults.set(false, forKey: "automaticShowLookup")
         let model = AppModel(defaults: defaults, discoverMountedDiscs: false)
         XCTAssertEqual(model.step, .source)
@@ -190,7 +190,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(model.choices.isEmpty); XCTAssertNotNil(model.error)
     }
     @MainActor func testSettingsRoundTrip() {
-        let defaults = UserDefaults(suiteName: "DiscDockTests-" + UUID().uuidString)!
+        let defaults = UserDefaults(suiteName: "DiscShiftTests-" + UUID().uuidString)!
         defaults.set(false, forKey: "automaticShowLookup")
         let model = AppModel(defaults: defaults, discoverMountedDiscs: false)
         model.filter = .bob; model.profile = .quality; model.encoder = .h264; model.container = .mov; model.ejectAfter = true

@@ -1,6 +1,17 @@
-# DiscDock validation
+# DiscShift validation (formerly DiscDock)
 
-## Unreleased: Developer ID and notarization workflow
+## Version 0.8.1: DiscShift, Developer ID, and notarization
+
+The app, source targets, onboarding, menus, help links, build filenames, and GitHub repository are now named DiscShift. The existing bundle identifier and preference keys remain unchanged, retaining settings and setup completion. The original staging folder and DISCDOCK build/test environment variables remain compatible.
+
+- The renamed Developer ID build passed 43 automated tests; two live tests were skipped (45 total). All source targets and test targets compile under the new names. An isolated UI session verified the DiscShift app/menu name, setup screens, successful installed-reader check, Start Using DiscShift action, Source window, and Settings tooltip.
+- The release is version 0.8.1/build 10. Developer ID signing uses hardened runtime and a secure timestamp. The exported app has no additional entitlements or debug exceptions. The original app identifier is retained to preserve preferences.
+- The signed app was submitted using Xcode's authenticated developer account through xcodebuild archive export. Export Notarized App succeeded. Apple's stapler validates the attached ticket, strict signature verification passes, and Gatekeeper accepts the app with source=Notarized Developer ID.
+- The release ZIP was extracted to a separate directory and its app ticket and strict signature validated again. Gatekeeper also accepted that extracted app after applying quarantine metadata. No signing private key, password, or API credential is included in the repository or release ZIP.
+- The published 0.8.1 download is the notarized ZIP. The separate notarytool-based disk-image workflow remains available but was not used for this release. The old DiscDock 0.8 release remains as historical, unnotarized preview software.
+- Signing and notarization do not establish a full physical-episode export, Intel/older-macOS compatibility, or actual Jellyfin client playback. Those prior validation limits remain.
+
+## Earlier signing preparation (before certificate setup)
 
 The build script now enables hardened runtime and accepts a Developer ID Application signing identity. The separate release workflow submits the app and disk image to Apple, requires an Accepted result, staples tickets, validates signatures/tickets, checks Gatekeeper, and checks that the final ZIP retains its app ticket. It does not publish to GitHub automatically.
 

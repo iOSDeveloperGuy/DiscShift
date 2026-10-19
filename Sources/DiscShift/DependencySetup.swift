@@ -1,6 +1,6 @@
 import AppKit
 import SwiftUI
-import DiscDockCore
+import DiscShiftCore
 
 enum ReaderLocations {
     static let readers = ["/opt/homebrew/bin/HandBrakeCLI", "/usr/local/bin/HandBrakeCLI", "/opt/local/bin/HandBrakeCLI"]

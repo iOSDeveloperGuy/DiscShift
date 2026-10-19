@@ -1,5 +1,7 @@
 # App icon
 
+DiscShift was previously called DiscDock; the original generation prompt below is preserved.
+
 `AppIcon.png` is the full-resolution icon master. `scripts/build-app.sh` generates the standard macOS icon sizes and `AppIcon.icns` from this file. Artwork is covered by the repository's MIT license.
 
 Created with the built-in image generation tool. Final prompt:

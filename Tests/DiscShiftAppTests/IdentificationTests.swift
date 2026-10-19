@@ -1,6 +1,6 @@
 import XCTest
-import DiscDockCore
-@testable import DiscDock
+import DiscShiftCore
+@testable import DiscShift
 
 private func show(_ id: Int, _ year: String) -> CatalogShow {
     try! JSONDecoder().decode(CatalogShow.self, from: Data("{\"id\":\(id),\"name\":\"Example Series\",\"premiered\":\"\(year)-01-01\"}".utf8))
@@ -25,7 +25,7 @@ private struct StubCatalog: ShowMetadataProviding {
 
 final class IdentificationTests: XCTestCase {
     @MainActor private func model(_ provider: any ShowMetadataProviding = StubCatalog()) -> AppModel {
-        let defaults = UserDefaults(suiteName: "DiscDockMetadataTests-" + UUID().uuidString)!
+        let defaults = UserDefaults(suiteName: "DiscShiftMetadataTests-" + UUID().uuidString)!
         defaults.set(false, forKey: "automaticShowLookup")
         let model = AppModel(defaults: defaults, discoverMountedDiscs: false, metadataProvider: provider)
         model.setSource(FileManager.default.temporaryDirectory)

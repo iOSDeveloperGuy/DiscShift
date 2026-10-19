@@ -1,5 +1,5 @@
 import AppKit
-import DiscDockCore
+import DiscShiftCore
 import SwiftUI
 
 struct EpisodesStepView: View {

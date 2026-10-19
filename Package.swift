@@ -1,10 +1,10 @@
 // swift-tools-version: 5.9
 import PackageDescription
-let package = Package(name: "DiscDock", platforms: [.macOS(.v14)], products: [
-    .executable(name: "DiscDock", targets: ["DiscDock"])
+let package = Package(name: "DiscShift", platforms: [.macOS(.v14)], products: [
+    .executable(name: "DiscShift", targets: ["DiscShift"])
 ], targets: [
-    .target(name: "DiscDockCore"),
-    .executableTarget(name: "DiscDock", dependencies: ["DiscDockCore"]),
-    .testTarget(name: "DiscDockCoreTests", dependencies: ["DiscDockCore"]),
-    .testTarget(name: "DiscDockAppTests", dependencies: ["DiscDock", "DiscDockCore"])
+    .target(name: "DiscShiftCore"),
+    .executableTarget(name: "DiscShift", dependencies: ["DiscShiftCore"]),
+    .testTarget(name: "DiscShiftCoreTests", dependencies: ["DiscShiftCore"]),
+    .testTarget(name: "DiscShiftAppTests", dependencies: ["DiscShift", "DiscShiftCore"])
 ])
