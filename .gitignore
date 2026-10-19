@@ -7,3 +7,10 @@ dist/
 .env.*
 xcuserdata/
 *.xcuserstate
+
+__pycache__/
+*.pyc
+*.p12
+*.p8
+*.pem
+*.key

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Builds and notarizes locally. Certificates stay in Keychain; this script never
-# accepts passwords or API private keys as arguments and never publishes a release.
+# Builds and notarizes locally or in CI. Credentials are read only from an
+# existing Keychain profile or a private API-key file. Never publishes a release.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export DISCSHIFT_SIGNING_IDENTITY="${DISCSHIFT_SIGNING_IDENTITY:-}"
@@ -12,12 +12,16 @@ if [[ "${DISCSHIFT_SIGNING_IDENTITY:-}" != "Developer ID Application:"* ]]; then
     printf 'Set DISCSHIFT_SIGNING_IDENTITY to your Developer ID Application certificate name.\n' >&2
     exit 1
 fi
-if [[ -z "${DISCSHIFT_NOTARY_PROFILE:-}" ]]; then
-    printf 'Set DISCSHIFT_NOTARY_PROFILE to an existing notarytool Keychain profile.\n' >&2
+NOTARY_AUTH=()
+if [[ -n "$DISCSHIFT_NOTARY_PROFILE" ]]; then
+    NOTARY_AUTH=(--keychain-profile "$DISCSHIFT_NOTARY_PROFILE")
+elif [[ -n "${DISCSHIFT_NOTARY_KEY_PATH:-}" && -n "${DISCSHIFT_NOTARY_KEY_ID:-}" && -n "${DISCSHIFT_NOTARY_ISSUER:-}" ]]; then
+    NOTARY_AUTH=(--key "$DISCSHIFT_NOTARY_KEY_PATH" --key-id "$DISCSHIFT_NOTARY_KEY_ID" --issuer "$DISCSHIFT_NOTARY_ISSUER")
+else
+    printf 'Set an existing notarytool profile or all three notarization API-key variables.\n' >&2
     exit 1
 fi
-# Validate access before spending time building. No credential values are printed.
-xcrun notarytool history --keychain-profile "$DISCSHIFT_NOTARY_PROFILE" --output-format json >/dev/null
+xcrun notarytool history "${NOTARY_AUTH[@]}" --output-format json >/dev/null
 export DISCSHIFT_REQUIRE_DEVELOPER_ID=1
 bash scripts/build-app.sh
 
@@ -38,7 +42,7 @@ mkdir -p "$REPORT_DIR"
 
 notarize() {
     local archive="$1" report="$2" result=0 status submission
-    xcrun notarytool submit "$archive" --keychain-profile "$DISCSHIFT_NOTARY_PROFILE" \
+    xcrun notarytool submit "$archive" "${NOTARY_AUTH[@]}" \
         --wait --timeout 30m --output-format json > "$report" || result=$?
     status="$(plutil -extract status raw -o - "$report" 2>/dev/null || true)"
     submission="$(plutil -extract id raw -o - "$report" 2>/dev/null || true)"

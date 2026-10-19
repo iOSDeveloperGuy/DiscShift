@@ -20,3 +20,13 @@
 ## Current limits
 
 A full physical episode and multi-episode DVD queue, subjective audio synchronization over a full episode, actual Jellyfin client playback, Intel builds, and macOS 14 remain unverified. Disc removal, network-share interruption, full destinations, and power-loss recovery need further testing. Jobs are not persistent or resumable. Signing and notarization do not establish those playback or compatibility results.
+
+## Automatic updates (0.9.0)
+
+- Sparkle 2.10.0 is pinned in Package.resolved, embedded with preserved symlinks, and each nested helper is re-signed before the framework and app.
+- An Apple-signed build with Sparkle has passed notarization, stapled-ticket validation, strict deep signature validation, and Gatekeeper assessment.
+- Sparkle generated and verified both the signed appcast and ZIP enclosure signature using the app's update signing key. The generated feed restricts this Apple Silicon build to arm64 and macOS 14+.
+- Native Settings shows the installed version, automatic checks, optional background downloads, and Check for Updates. Automatic checks start after the setup assistant is dismissed.
+- Update tests cover postponing a relaunch until idle, running its callback once, cancellation, and preventing another disc operation once installation begins.
+- GitHub workflow syntax passes actionlint. The release environment accepts only the main branch. The dedicated Apple notarization API credential has validated successfully.
+- Full GitHub release execution and in-app archive replacement/relaunch are pending live verification.

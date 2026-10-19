@@ -291,6 +291,7 @@ struct ReaderSettingsView: View {
     @Environment(\.openWindow) private var openWindow
     var body: some View {
         Form {
+            UpdateSettingsView()
             Section {
                 Button("Run Setup Assistant…") {
                     openWindow(id: "main")
@@ -317,7 +318,7 @@ struct ReaderSettingsView: View {
                 Text("If you use libdvdcss, choose its containing folder. The library and HandBrakeCLI must match your Mac’s architecture. A real disc scan checks compatibility.")
             }
         }
-        .formStyle(.grouped).frame(width: 560, height: 470).disabled(model.busy)
+        .formStyle(.grouped).frame(width: 560, height: 650).disabled(model.busy || model.updateInstallationPending)
         .onChange(of: model.executable) { _, _ in model.saveSettings() }
         .onChange(of: model.libraryDirectory) { _, _ in model.saveSettings() }
         .onChange(of: model.automaticShowLookup) { _, _ in model.saveSettings() }

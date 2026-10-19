@@ -1,0 +1,104 @@
+name: Release
+on:
+  push:
+    branches: [main]
+    paths: [release.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: discshift-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    environment: release
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Validate release and credentials
+        env:
+          CERTIFICATE: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.APPLE_API_KEY_P8 }}
+          NOTARY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+          UPDATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          printf 'DISCSHIFT_BUILD_DIR=%s/discshift-build\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          python3 scripts/release.py check
+          python3 - <<'PY'
+          import os
+          required = ['CERTIFICATE', 'CERTIFICATE_PASSWORD', 'NOTARY_KEY', 'NOTARY_ID', 'NOTARY_ISSUER', 'UPDATE_KEY']
+          if any(not os.environ.get(k) for k in required):
+              raise SystemExit('Release signing is not configured. See docs/AUTOMATIC-UPDATES.md. No release was published.')
+          PY
+      - name: Check whether the release is already public
+        id: state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          config = json.load(open('release.json'))
+          tag = 'v' + config['version']
+          releases = json.loads(subprocess.check_output(['gh', 'api', 'repos/iOSDeveloperGuy/DiscShift/releases?per_page=100']))
+          public = any(r['tag_name'] == tag and not r['draft'] for r in releases)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('published=' + str(public).lower() + '\n')
+          PY
+      # Run source/tests before any signing private key is imported.
+      - name: Test and build
+        if: steps.state.outputs.published != 'true'
+        run: bash scripts/build-app.sh
+      - name: Import release credentials into the temporary runner
+        if: steps.state.outputs.published != 'true'
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+        run: bash scripts/ci-signing.sh
+      - name: Sign and notarize
+        if: steps.state.outputs.published != 'true'
+        env:
+          DISCSHIFT_NOTARY_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          DISCSHIFT_NOTARY_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+          DISCSHIFT_SKIP_TESTS: '1'
+        run: bash scripts/notarize-release.sh
+      - name: Resolve Sparkle tools for an existing release
+        if: steps.state.outputs.published == 'true'
+        run: swift package --scratch-path "$RUNNER_TEMP/discshift-build" resolve
+      - name: Prepare and verify the signed update feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          version="$(python3 -c 'import json; print(json.load(open("release.json"))["version"])')"
+          mkdir -p dist
+          if [[ '${{ steps.state.outputs.published }}' == true ]]; then
+            gh release download "v$version" --repo "$GITHUB_REPOSITORY" --pattern "DiscShift-$version-macOS.zip" --dir dist
+          fi
+          python3 scripts/release.py prepare --tools "$RUNNER_TEMP/discshift-build/artifacts/sparkle/Sparkle/bin" --archive "dist/DiscShift-$version-macOS.zip"
+      - name: Keep verified artifacts for release recovery
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-release
+          path: |
+            dist/updates/
+            dist/*.dmg
+            dist/notarization-*/
+          retention-days: 30
+      - name: Publish release, verify public download, then publish feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/release.py publish --commit "$GITHUB_SHA"
+      - name: Delete signing credentials
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/discshift-signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/discshift-signing.p12" "$RUNNER_TEMP/discshift-notary.p8"

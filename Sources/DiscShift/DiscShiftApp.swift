@@ -3,15 +3,20 @@ import AppKit
 
 @main @MainActor struct DiscShiftApp: App {
     @StateObject private var model = AppModel(defaults: SettingsStore.standard())
+    @StateObject private var updates = AppUpdates()
     @NSApplicationDelegateAdaptor(DiscShiftDelegate.self) private var appDelegate
     var body: some Scene {
         Window("DiscShift", id: "main") {
-            ContentView().environmentObject(model)
+            ContentView().environmentObject(model).environmentObject(updates)
                 .frame(minWidth: 800, minHeight: 640)
-                .onAppear { appDelegate.model = model }
+                .onAppear { appDelegate.model = model; updates.attach(to: model) }
         }
         .defaultSize(width: 920, height: 740)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…", action: updates.check)
+                    .disabled(!updates.canCheck || updates.operationInProgress)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Open Source…") { model.chooseSource() }.keyboardShortcut("o").disabled(model.busy || model.showingSetup)
             }
@@ -31,7 +36,7 @@ import AppKit
             }
         }
         Settings {
-            ReaderSettingsView().environmentObject(model)
+            ReaderSettingsView().environmentObject(model).environmentObject(updates)
         }
     }
 }
@@ -39,6 +44,9 @@ import AppKit
 @MainActor final class DiscShiftDelegate: NSObject, NSApplicationDelegate {
     weak var model: AppModel?
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if let model, model.updateInstallationPending && (model.busy || model.setup.isWorking) {
+            return .terminateCancel
+        }
         if let model, model.setup.isWorking {
             model.setup.cancel()
             Task {

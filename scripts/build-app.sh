@@ -16,12 +16,20 @@ fi
 # Keep generated bundles outside iCloud/File Provider folders. Their Finder
 # metadata can cause codesign to reject otherwise valid test and app bundles.
 BUILD_DIR="${DISCSHIFT_BUILD_DIR:-${TMPDIR:-/tmp}/discshift-build-$UID}"
-swift test --scratch-path "$BUILD_DIR"
+if [[ "${DISCSHIFT_SKIP_TESTS:-0}" != 1 ]]; then
+    swift test --scratch-path "$BUILD_DIR"
+fi
 swift build -c release --scratch-path "$BUILD_DIR"
 BIN_DIR="$(swift build -c release --scratch-path "$BUILD_DIR" --show-bin-path)"
 APP="$BUILD_DIR/DiscShift.app"
+rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cp -X "$BIN_DIR/DiscShift" "$APP/Contents/MacOS/DiscShift"
+# Preserve framework symlinks; re-sign every nested helper inside-out below.
+SPARKLE_ROOT="$BUILD_DIR/artifacts/sparkle/Sparkle"
+FRAMEWORK="$APP/Contents/Frameworks/Sparkle.framework"
+mkdir -p "$APP/Contents/Frameworks"
+ditto --noextattr --norsrc "$SPARKLE_ROOT/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" "$FRAMEWORK"
 ICONSET="$BUILD_DIR/AppIcon.iconset"
 mkdir -p "$ICONSET" "$APP/Contents/Resources"
 for size in 16 32 128 256 512; do
@@ -40,25 +48,43 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>DiscShift</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.8.2</string>
-<key>CFBundleVersion</key><string>11</string>
+<key>CFBundleShortVersionString</key><string>0.0.0</string>
+<key>CFBundleVersion</key><string>0</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
-if [[ -n "${DISCSHIFT_VERSION:-}" ]]; then
-    [[ "$DISCSHIFT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { printf 'Use a numeric version such as 0.8.2.\n' >&2; exit 1; }
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $DISCSHIFT_VERSION" "$APP/Contents/Info.plist"
-fi
-if [[ -n "${DISCSHIFT_BUILD_NUMBER:-}" ]]; then
-    [[ "$DISCSHIFT_BUILD_NUMBER" =~ ^[0-9]+$ ]] || { printf 'Use a numeric build number.\n' >&2; exit 1; }
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $DISCSHIFT_BUILD_NUMBER" "$APP/Contents/Info.plist"
-fi
+python3 - "$APP/Contents/Info.plist" <<'PYCONFIG'
+import base64, json, os, plistlib, re, sys
+from pathlib import Path
+config = json.loads(Path('release.json').read_text())
+version = os.environ.get('DISCSHIFT_VERSION') or config['version']
+build = os.environ.get('DISCSHIFT_BUILD_NUMBER') or str(config['build'])
+assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version), 'Expected numeric semantic version'
+assert re.fullmatch(r'[1-9][0-9]*', build), 'Expected positive build number'
+assert len(base64.b64decode(config['publicEDKey'], validate=True)) == 32
+assert config['feedURL'].startswith('https://')
+path = Path(sys.argv[1]); info = plistlib.loads(path.read_bytes())
+info.update(CFBundleShortVersionString=version, CFBundleVersion=build,
+    SUFeedURL=config['feedURL'], SUPublicEDKey=config['publicEDKey'],
+    SUEnableAutomaticChecks=True, SUAutomaticallyUpdate=False,
+    SUEnableSystemProfiling=False, SUVerifyUpdateBeforeExtraction=True,
+    SURequireSignedFeed=True)
+path.write_bytes(plistlib.dumps(info))
+PYCONFIG
+cp -X "$SPARKLE_ROOT/LICENSE" "$APP/Contents/Resources/Sparkle-LICENSE.txt"
+SIGN_FLAGS=(--force --options runtime --sign "$SIGNING_IDENTITY")
 if [[ "$SIGNING_IDENTITY" == - ]]; then
-    codesign --force --options runtime --timestamp=none --sign - "$APP"
+    SIGN_FLAGS+=(--timestamp=none)
 else
-    codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$APP"
+    SIGN_FLAGS+=(--timestamp)
 fi
+codesign "${SIGN_FLAGS[@]}" "$FRAMEWORK/Versions/B/XPCServices/Installer.xpc"
+codesign "${SIGN_FLAGS[@]}" --preserve-metadata=entitlements "$FRAMEWORK/Versions/B/XPCServices/Downloader.xpc"
+codesign "${SIGN_FLAGS[@]}" "$FRAMEWORK/Versions/B/Autoupdate"
+codesign "${SIGN_FLAGS[@]}" "$FRAMEWORK/Versions/B/Updater.app"
+codesign "${SIGN_FLAGS[@]}" "$FRAMEWORK"
+codesign "${SIGN_FLAGS[@]}" "$APP"
 codesign --verify --deep --strict "$APP"
 mkdir -p "$PWD/dist"
 # Archive the verified local bundle directly, before File Provider can attach

@@ -50,6 +50,7 @@ private struct OrderSnapshot: Equatable {
     @Published var container: ExportContainer = .mp4
     @Published private var approvedSubtitleOmissions: [String]?
     @Published var filter: MotionFilter = .adaptive
+    @Published var updateInstallationPending = false
     @Published var busy = false
     @Published var scanning = false
     @Published var detail = "Choose a DVD to get started"
@@ -125,7 +126,7 @@ private struct OrderSnapshot: Equatable {
     deinit { for observer in observers { NSWorkspace.shared.notificationCenter.removeObserver(observer) } }
     var selectedCount: Int { choices.filter(\.selected).count }
     var canExport: Bool {
-        !busy && exportHint == nil
+        !busy && !updateInstallationPending && exportHint == nil
     }
     var exportHint: String? {
         guard let source else { return "Open a source to begin." }
@@ -152,7 +153,7 @@ private struct OrderSnapshot: Equatable {
     }
     var readerAvailable: Bool { FileManager.default.isExecutableFile(atPath: executable) }
     var canContinue: Bool {
-        guard !busy else { return false }
+        guard !busy, !updateInstallationPending else { return false }
         switch step {
         case .identify: return enteringShowManually ? !series.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty : identifiedShow != nil && !lookingUpShow
         case .source: return source != nil && readerAvailable && source.map { FileManager.default.fileExists(atPath: $0.path) } == true
@@ -177,7 +178,7 @@ private struct OrderSnapshot: Equatable {
         }
     }
     func goBack() {
-        guard !busy else { return }
+        guard !busy, !updateInstallationPending else { return }
         switch step {
         case .identify: stopMetadataLookup(); step = .source
         case .episodes: step = .identify
@@ -192,7 +193,7 @@ private struct OrderSnapshot: Equatable {
         step = target
     }
     func startNextDisc() {
-        guard !busy else { return }
+        guard !busy, !updateInstallationPending else { return }
         if let last = jobs.filter({ $0.status == "Complete" }).map(\.episode).max() { firstEpisode = min(999, last + 1) }
         choices = []; jobs = []; error = nil; step = .source
         confirmedOrder = nil
@@ -216,7 +217,7 @@ private struct OrderSnapshot: Equatable {
         defaults.set(ejectAfter, forKey: "ejectAfter")
     }
     func openSetup() {
-        guard !busy else { return }
+        guard !busy, !updateInstallationPending else { return }
         setup.readerPath = executable; setup.libraryPath = libraryDirectory
         showingSetup = true
     }
@@ -236,7 +237,7 @@ private struct OrderSnapshot: Equatable {
         }
     }
     func setSource(_ url: URL) {
-        guard !busy else { return }
+        guard !busy, !updateInstallationPending else { return }
         approvedSubtitleOmissions = nil
         if source != url {
             resetIdentification(preservingShow: retainingShowForNextDisc)
@@ -266,7 +267,7 @@ private struct OrderSnapshot: Equatable {
         if p.runModal() == .OK, let url = p.url { executable = url.path; saveSettings() }
     }
     func scan() {
-        guard let source, !busy else { return }
+        guard let source, !busy, !updateInstallationPending else { return }
         stopMetadataLookup(); confirmedOrder = nil
         busy = true; scanning = true; choices = []; error = nil; step = .source
         detail = "Reading titles and chapters…"; activity = ""

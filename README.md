@@ -6,7 +6,7 @@ DiscShift uses the app identifier `com.iosdeveloperguy.discshift`. On first laun
 
 A native macOS app that turns DVD episodes into smaller, neatly named files for your Jellyfin TV library.
 
-DiscShift guides you from disc to library: identify a show online, confirm the episode order, choose a destination, and export with Apple hardware encoding. Built with SwiftUI for macOS 14 and later, with no third-party Swift dependencies.
+DiscShift guides you from disc to library: identify a show online, confirm the episode order, choose a destination, and export with Apple hardware encoding. Built with SwiftUI for macOS 14 and later, with Sparkle for secure in-app updates.
 
 ## Download
 
@@ -121,3 +121,7 @@ DiscShift source and app artwork are [MIT licensed](LICENSE). The app icon was c
 - [HandBrake container support](https://handbrake.fr/docs/en/latest/technical/containers.html)
 - [HandBrake subtitle support](https://handbrake.fr/docs/en/latest/advanced/subtitles.html)
 - [libdvdcss](https://www.videolan.org/developers/libdvdcss.html)
+
+## Automatic updates
+
+Starting with 0.9.0, use **DiscShift → Check for Updates…**, or enable automatic checks and background downloads in Settings. People on 0.8.2 install this next release once; future updates happen in the app. Updates wait for disc operations and setup to finish. See [automatic updates and push-to-release setup](docs/AUTOMATIC-UPDATES.md) for the publishing workflow and required encrypted credentials.
