@@ -1,8 +1,28 @@
-<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>DiscShift</title>
+        <item>
+            <title>0.9.1</title>
+            <pubDate>Mon, 19 Oct 2026 18:32:03 +0000</pubDate>
+            <link>https://github.com/iOSDeveloperGuy/DiscShift</link>
+            <sparkle:version>13</sparkle:version>
+            <sparkle:shortVersionString>0.9.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<pre>DiscShift gets itself and your Mac ready with less setup.
+
+- Open your download and DiscShift installs itself in Applications before starting setup. Existing copies are protected, with a choice to replace or open them.
+- One reader installation includes its DVD support, with a clear ready state when setup finishes.
+- Separate DVD-support options appear only when support is still missing after checking your reader.
+- Technical names, custom locations, and installation logs stay available in Advanced and Details.
+- Settings now keeps everyday controls upfront and technical options tucked away.
+</pre>]]></description>
+            <enclosure url="https://github.com/iOSDeveloperGuy/DiscShift/releases/download/v0.9.1/DiscShift-0.9.1-macOS.zip" length="3322746" type="application/octet-stream" sparkle:edSignature="9rCWVbCdaSLIDnqwhv+gQkx13fixJB9VzZ8d7YwguWpkVMgZqCmsoYlYtpIeY7dBUUjZWAouAGrkLIHx/JkzDQ=="/>
+        </item>
         <item>
             <title>0.9.0</title>
             <pubDate>Mon, 19 Oct 2026 17:59:03 +0000</pubDate>
@@ -20,10 +40,11 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
 
 If you&#x27;re upgrading from 0.8.2, install this version once from GitHub and move it to Applications. Future versions can update in the app.
 </pre>]]></description>
-            <enclosure url="https://github.com/iOSDeveloperGuy/DiscShift/releases/download/v0.9.0/DiscShift-0.9.0-macOS.zip" length="3282047" type="application/octet-stream" sparkle:edSignature="c6jh3oDiWYk+Wt6tsff/IOaF2Pl2RbBHvtGUzSZ8SOM5jxOP4NgDQXkOl32wvY7D6SkgDHsQymt9yhABMI61Aw=="></enclosure>
+            <enclosure url="https://github.com/iOSDeveloperGuy/DiscShift/releases/download/v0.9.0/DiscShift-0.9.0-macOS.zip" length="3282047" type="application/octet-stream" sparkle:edSignature="c6jh3oDiWYk+Wt6tsff/IOaF2Pl2RbBHvtGUzSZ8SOM5jxOP4NgDQXkOl32wvY7D6SkgDHsQymt9yhABMI61Aw=="/>
         </item>
     </channel>
-</rss><!-- sparkle-signatures:
-edSignature: TQ3SgmJIW7j86VCNyLV0CkE9sqWS2O6s3H7YfBjOsF6mCmQG4W3ZlA6vLFeIjgle5XZ/gNkmEH+dOdB27vV4Dw==
-length: 1771
+</rss>
+<!-- sparkle-signatures:
+edSignature: FtdARX+7wow1Qm4eRAEwfns2/pnH5YCDrpvBlbAJbYS1j3R1O3Yu45n5qQU4UPQ2e5HPDeEemMuYX48jW+gQBw==
+length: 3191
 -->
