@@ -1,6 +1,8 @@
 # Signing and notarizing a macOS release
 
-DiscShift 0.8.2 is Developer ID signed and notarized, with a stapled ticket validated after extracting its ZIP. A future release is ready only after notarized export and ticket, signature, and Gatekeeper checks pass.
+The standard publishing path is now the [automatic updates and GitHub release workflow](AUTOMATIC-UPDATES.md). A version/build change in `release.json` pushed to main triggers signing, notarization, verified publication, and the signed update feed. The local alternatives below remain available.
+
+DiscShift 0.9.0 is Developer ID signed and notarized, with a stapled ticket validated after extracting its ZIP. A future release is ready only after notarized export and ticket, signature, and Gatekeeper checks pass.
 
 ## One-time signing setup
 
@@ -16,8 +18,8 @@ This is the path used for 0.8.2. It does not require a separate app-specific pas
 
 ```sh
 DISCSHIFT_SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)' \
-DISCSHIFT_VERSION=0.8.2 \
-DISCSHIFT_BUILD_NUMBER=11 \
+DISCSHIFT_VERSION=0.9.0 \
+DISCSHIFT_BUILD_NUMBER=12 \
 bash scripts/notarize-with-xcode.sh
 ```
 
@@ -39,8 +41,8 @@ Supply your Apple Account, team ID, and app-specific password locally when promp
 ```sh
 DISCSHIFT_SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)' \
 DISCSHIFT_NOTARY_PROFILE=discshift-notary \
-DISCSHIFT_VERSION=0.8.2 \
-DISCSHIFT_BUILD_NUMBER=11 \
+DISCSHIFT_VERSION=0.9.0 \
+DISCSHIFT_BUILD_NUMBER=12 \
 bash scripts/notarize-release.sh
 ```
 

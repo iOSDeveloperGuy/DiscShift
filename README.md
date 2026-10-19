@@ -12,7 +12,7 @@ DiscShift guides you from disc to library: identify a show online, confirm the e
 
 Get the Mac app from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases). Extract the ZIP and move DiscShift to Applications.
 
-**Signed and notarized:** DiscShift 0.8.2 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
+**Signed and notarized:** DiscShift 0.9.0 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
 
 ## First-run setup
 
@@ -106,7 +106,7 @@ The reader test scans the chosen source, encodes six seconds, and requires an ac
 
 ## Validation and current limits
 
-Version 0.8.2 passes 49 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
+Version 0.9.0 passes 53 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
 
 Prior tests verified short physical-DVD hardware encodes, all four output containers, native decoding of Apple-container files, multiple audio tracks, text subtitles, and chapter data. A full physical episode, long-term audio sync, actual Jellyfin clients, Intel builds, and macOS 14 have not been validated. The app is currently distributed as a development preview.
 
