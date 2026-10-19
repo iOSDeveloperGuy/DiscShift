@@ -2,19 +2,53 @@
 
 # DiscShift
 
-DiscShift uses the app identifier `com.iosdeveloperguy.discshift`. On first launch it can import recognized settings from one matching app in the same publisher namespace, preserving setup and library preferences. Existing settings in the new app take priority.
+**Your DVDs. Your TV library.**
 
-A native macOS app that turns DVD episodes into smaller, neatly named files for your Jellyfin TV library.
+A guided Mac app that turns TV DVDs into smaller video files, named and organized for Jellyfin.
 
-DiscShift guides you from disc to library: identify a show online, confirm the episode order, choose a destination, and export with Apple hardware encoding. Built with SwiftUI for macOS 14 and later, with Sparkle for secure in-app updates.
+Find your show, check the episode order, and choose where to save. DiscShift uses Apple hardware encoding to create MP4, M4V, MOV, or MKV files and puts them into the right show and season folders.
+
+[Download for Mac](https://github.com/iOSDeveloperGuy/DiscShift/releases) · [Get started](#first-run-setup) · [Report an issue](https://github.com/iOSDeveloperGuy/DiscShift/issues)
+
+Apple Silicon · macOS 14 or later · Signed and notarized · Development preview
+
+![DiscShift reviewing three DVD titles, their durations, and suggested episode names before confirming the order](docs/screenshots/episode-order.jpg)
+
+Match each title to the right episode before exporting. Online episode names are suggestions; you confirm the DVD order.
+
+## A guided workflow
+
+<table>
+  <tr>
+    <th>Find your show</th>
+    <th>Choose your export</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/show-lookup.jpg" width="460" alt="DiscShift finding the 1978 and 2020 versions of All Creatures Great and Small"></td>
+    <td><img src="docs/screenshots/export-options.jpg" width="460" alt="DiscShift reviewing filenames, estimated sizes, file format, and Apple hardware encoding before export"></td>
+  </tr>
+  <tr>
+    <td>Identify the correct series and load its episode names, or enter details yourself.</td>
+    <td>Preview filenames and estimated sizes, then pick the format and quality you want.</td>
+  </tr>
+</table>
+
+Screenshots from DiscShift 0.9.2. [More about the screenshots](docs/screenshots/README.md).
 
 ## Download
 
-Get the Mac app from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases). Extract the ZIP and open DiscShift. Starting with 0.9.1, it installs itself in Applications and reopens there before setup. If the shared Applications folder isn’t writable, it uses Applications in your home folder. You can still move it there yourself before opening it.
+Download the ZIP from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases), extract it, and open DiscShift. It installs itself in Applications, then helps you get your Mac ready. Future updates are available inside the app.
 
-After the installed copy opens successfully, DiscShift moves matching app copies from Downloads to Trash. Starting with 0.9.2, this also handles Safari downloads that macOS runs from a protected temporary location. ZIP archives and other versions are kept. Cleanup leaves macOS quarantine intact; if folder access is denied, the app remains usable and the download can be removed in Finder.
+Public releases are signed with Developer ID, notarized by Apple, and include a stapled ticket. This is an Apple Silicon development preview for macOS 14 and later; see [validation and current limits](#validation-and-current-limits) before exporting a collection.
 
-**Signed and notarized:** Public DiscShift releases are signed with Developer ID, notarized by Apple, and include a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
+<details>
+<summary>Installation details</summary>
+
+If the shared Applications folder isn’t writable, DiscShift uses Applications in your home folder. You can also move the app there yourself before opening it.
+
+After the installed copy opens successfully, DiscShift moves matching app copies from Downloads to Trash, including Safari downloads opened from a protected temporary location. ZIP archives and other versions are kept. Cleanup leaves macOS quarantine intact; if folder access is denied, the app remains usable and the download can be removed in Finder.
+
+</details>
 
 ## First-run setup
 
@@ -73,6 +107,8 @@ A DVD usually supplies durations and chapters, but cannot reliably establish sho
 TVMaze metadata is available under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/), separately from DiscShift's source license. The app credits TVMaze and links to the selected show.
 
 ## Build from source
+
+DiscShift is built with SwiftUI and uses Sparkle for signed in-app updates. Its app identifier is `com.iosdeveloperguy.discshift`. On first launch it can import recognized settings from one matching app in the same publisher namespace, preserving setup and library preferences. Existing settings take priority.
 
 Install full Xcode, open `Package.swift`, and run DiscShift on My Mac. To build a standalone app:
 
