@@ -84,6 +84,7 @@ def prepare(directory, tools, archive):
                            'CFBundleShortVersionString': data['version'],
                            'SUPublicEDKey': data['publicEDKey'],
                            'SUFeedURL': data['feedURL'],
+                           'DSInstallOnLaunch': True,
                            'SURequireSignedFeed': True,
                            'SUVerifyUpdateBeforeExtraction': True}.items():
             if info.get(key) != value:

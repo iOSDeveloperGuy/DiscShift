@@ -27,6 +27,9 @@ struct SetupView: View {
             HStack {
                 if page > 0 { Button("Back") { page -= 1 }.disabled(setup.isWorking) }
                 Button("Set Up Later") { model.showingSetup = false }.disabled(setup.isWorking)
+                if page == 1 && !setup.isReady && !setup.isWorking && ReaderLocations.brew != nil {
+                    Button("Check Again") { setup.check() }
+                }
                 Spacer()
                 if setup.isWorking {
                     Button(setup.isInstalling ? "Stop Installation" : "Cancel Check") { setup.cancel() }
@@ -42,13 +45,18 @@ struct SetupView: View {
     }
     private var primaryLabel: String {
         if page == 0 { return "Check My Mac" }
-        if page == 1 { return setup.isReady ? "Continue" : "Check Again" }
+        if page == 1 {
+            if setup.isReady { return "Continue" }
+            return ReaderLocations.brew != nil ? "Install DVD Reader" : "Check Again"
+        }
         return "Start Using DiscShift"
     }
     private func advance() {
         if page == 0 { page = 1; setup.check() }
         else if page == 1 {
-            if setup.isReady { page = 2 } else { setup.check() }
+            if setup.isReady { page = 2 }
+            else if ReaderLocations.brew != nil { setup.install() }
+            else { setup.check() }
         } else { model.completeSetup() }
     }
     private var welcome: some View {
@@ -58,8 +66,8 @@ struct SetupView: View {
                 .font(.title3).foregroundStyle(.secondary)
             feature("opticaldisc", "Choose a disc", "DiscShift finds the titles on your DVD or in a video file.")
             feature("list.number", "Match your episodes", "Find the show online, then confirm the episode order.")
-            feature("folder", "Save to your library", "Use Apple hardware encoding and the file type you prefer.")
-            Text("Setup checks for a separate reader called HandBrakeCLI. If it’s missing, we’ll help you install it.")
+            feature("folder", "Save to your library", "Save smaller, neatly named videos in the format you prefer.")
+            Text("We’ll check your Mac and help you install anything you need to get started.")
                 .font(.callout).foregroundStyle(.secondary)
         }
     }
@@ -74,63 +82,90 @@ struct SetupView: View {
     }
     private var reader: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(setup.isReady ? "Your reader is ready" : "Get your Mac ready").font(.largeTitle).fontWeight(.bold)
-            Text("HandBrakeCLI reads your discs and compresses video. It runs locally on your Mac.")
+            Text(setup.isReady ? "Your Mac is ready" : "Get your Mac ready")
+                .font(.largeTitle).fontWeight(.bold)
+            Text(setup.isReady ? "Your reader is installed. You’re ready to choose a disc or video." : "DiscShift needs a reader to open DVDs and save your videos. We’ll check what’s ready and help with anything missing.")
                 .foregroundStyle(.secondary)
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 12) {
                         if setup.isWorking { ProgressView().controlSize(.small) }
-                        else { Image(systemName: setup.isReady ? "checkmark.circle.fill" : "arrow.down.circle").foregroundStyle(setup.isReady ? .green : .secondary).font(.title2) }
+                        else {
+                            Image(systemName: setup.isReady ? "checkmark.circle.fill" : "arrow.down.circle")
+                                .foregroundStyle(setup.isReady ? .green : .secondary).font(.title2)
+                        }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(setup.isInstalling ? "Installing…" : setup.isWorking ? "Checking your reader…" : setup.isReady ? setup.version ?? "DVD reader" : "DVD reader").fontWeight(.semibold)
-                            Text(setup.isReady ? "Apple hardware encoding is available" : "Required for scanning and exporting").font(.callout).foregroundStyle(.secondary)
+                            Text(setup.isInstalling ? "Installing your reader…" : setup.isWorking ? "Checking your Mac…" : setup.isReady ? "Reader ready" : "DVD reader")
+                                .fontWeight(.semibold)
+                            Text(setup.isInstalling ? "Downloading and setting up what your Mac needs." : setup.isWorking ? "This should only take a moment." : setup.isReady ? "Ready to scan and export your videos." : "One install gets your Mac ready.")
+                                .font(.callout).foregroundStyle(.secondary)
                         }
                         Spacer()
                     }
+                    if setup.isReady && setup.dvdLibraryFound {
+                        Label("DVD support is included", systemImage: "checkmark.circle")
+                            .font(.callout).foregroundStyle(.secondary)
+                    }
                     if !setup.isReady && !setup.isWorking {
                         if ReaderLocations.brew != nil {
-                            Button("Install Reader") { setup.install() }.controlSize(.large)
-                            Text("Uses your existing Homebrew installation to download HandBrakeCLI and its required components.").font(.caption).foregroundStyle(.secondary)
+                            Text("Installs the reader and its included DVD support together. We’ll check everything when it finishes.")
+                                .font(.callout).foregroundStyle(.secondary)
                         } else {
-                            Link("Download HandBrakeCLI…", destination: URL(string: "https://handbrake.fr/downloads2.php")!)
-                            Text("Download the macOS command-line package from HandBrake. Open it, then choose HandBrakeCLI below. The graphical HandBrake app alone isn’t the reader DiscShift needs.").font(.callout).foregroundStyle(.secondary)
+                            Link("Download Reader…", destination: URL(string: "https://handbrake.fr/downloads2.php")!)
+                            Text("Choose the HandBrakeCLI download for macOS, then select the downloaded reader in Advanced below.")
+                                .font(.callout).foregroundStyle(.secondary)
                         }
-                        Button("Choose Downloaded Reader…") { setup.chooseReader() }
                     }
                 }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
             }
-            GroupBox {
-                VStack(alignment: .leading, spacing: 10) {
-                    Label(setup.dvdLibraryFound ? "DVD support found" : "Extra DVD support", systemImage: setup.dvdLibraryFound ? "checkmark.circle" : "opticaldisc").fontWeight(.semibold)
-                    Text(setup.dvdLibraryFound ? "libdvdcss was found. Your first disc scan will check whether it works with that DVD." : "Some DVDs need an additional library called libdvdcss. Video files and unprotected DVDs can work without it.").font(.callout).foregroundStyle(.secondary)
-                    if !setup.dvdLibraryFound {
+            // Reader installation may already include DVD support. Offer another
+            // action only after checking the installed reader and its libraries.
+            if setup.isReady && !setup.dvdLibraryFound {
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("Extra help for some DVDs", systemImage: "opticaldisc").fontWeight(.semibold)
+                        Text("You can start with videos and unprotected DVDs now. If a DVD won’t open, try adding DVD support here.")
+                            .font(.callout).foregroundStyle(.secondary)
                         if ReaderLocations.brew != nil {
                             Button("Add DVD Support") { setup.install(dvdSupport: true) }.disabled(setup.isWorking)
                         } else {
-                            HStack {
-                                Link("About DVD support…", destination: URL(string: "https://www.videolan.org/developers/libdvdcss.html")!)
-                                Link("Get Homebrew…", destination: URL(string: "https://brew.sh")!)
-                            }
-                            Text("If you install Homebrew, return here and choose Check Again to enable guided installation.").font(.caption).foregroundStyle(.secondary)
+                            Link("About DVD support…", destination: URL(string: "https://www.videolan.org/developers/libdvdcss.html")!)
+                            Text("Advanced below has the installation details and options for choosing an existing copy.")
+                                .font(.callout).foregroundStyle(.secondary)
                         }
-                    }
-                }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                    }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             if let message = setup.message {
-                Label(message, systemImage: "info.circle").font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Label(message, systemImage: "info.circle").font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             DisclosureGroup("Advanced", isExpanded: $advanced) {
-                VStack(alignment: .leading, spacing: 10) {
-                    TextField("Reader location", text: $setup.readerPath).textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("DiscShift uses HandBrakeCLI to read and encode video. Guided installation uses your existing Homebrew and includes the reader’s dependencies.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    if let version = setup.version { LabeledContent("Reader version", value: version) }
                     HStack {
-                        TextField("DVD library folder", text: $setup.libraryPath).textFieldStyle(.roundedBorder)
-                        Button("Choose…") { setup.chooseLibrary() }
+                        TextField("Reader executable", text: $setup.readerPath).textFieldStyle(.roundedBorder)
+                        Button("Choose…") { setup.chooseReader() }.help("Choose HandBrakeCLI")
+                    }
+                    Link("Download HandBrakeCLI…", destination: URL(string: "https://handbrake.fr/downloads2.php")!)
+                    Divider()
+                    Text("Extra DVD support uses libdvdcss. If you installed it in another location, choose its containing folder.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    HStack {
+                        TextField("DVD support folder", text: $setup.libraryPath).textFieldStyle(.roundedBorder)
+                        Button("Choose…") { setup.chooseLibrary() }.help("Choose the DVD support folder")
+                    }
+                    if ReaderLocations.brew == nil {
+                        Link("Get Homebrew…", destination: URL(string: "https://brew.sh")!)
+                        Text("After installing Homebrew, choose Check Again to enable guided installation.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(.top, 10).disabled(setup.isWorking)
             }
             if !setup.diagnostics.isEmpty {
-                DisclosureGroup("Installation and check details", isExpanded: $showingDetails) {
+                DisclosureGroup("Details", isExpanded: $showingDetails) {
                     Text(setup.diagnostics).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
                 }

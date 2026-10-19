@@ -289,23 +289,19 @@ private struct ExportStepView: View {
 struct ReaderSettingsView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.openWindow) private var openWindow
+    @State private var advanced = false
     var body: some View {
         Form {
             UpdateSettingsView()
             Section {
+                Label(model.readerAvailable ? "Reader installed" : "Reader needed", systemImage: model.readerAvailable ? "checkmark.circle.fill" : "arrow.down.circle")
+                    .foregroundStyle(model.readerAvailable ? Color.secondary : Color.orange)
                 Button("Run Setup Assistant…") {
                     openWindow(id: "main")
                     model.openSetup()
                 }
-                TextField("HandBrakeCLI", text: $model.executable).textFieldStyle(.roundedBorder)
-                HStack {
-                    Label(model.readerAvailable ? "HandBrakeCLI is available" : "HandBrakeCLI wasn’t found", systemImage: model.readerAvailable ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(model.readerAvailable ? Color.secondary : Color.orange)
-                    Spacer()
-                    Button("Choose Executable…") { model.chooseEngine() }
-                }
             } header: { Text("DVD reader") } footer: {
-                Text("DiscShift uses your separately installed HandBrakeCLI to read and encode sources.")
+                Text("Setup checks your reader and helps install anything missing.")
             }
             Section {
                 Toggle("Automatically identify shows online", isOn: $model.automaticShowLookup)
@@ -313,9 +309,19 @@ struct ReaderSettingsView: View {
                 Text("After scanning, DiscShift searches TVMaze using the disc name. Video, audio, and local paths are never uploaded. You can always enter show details manually.")
             }
             Section {
-                TextField("Library folder", text: $model.libraryDirectory).textFieldStyle(.roundedBorder)
-            } header: { Text("Optional DVD library") } footer: {
-                Text("If you use libdvdcss, choose its containing folder. The library and HandBrakeCLI must match your Mac’s architecture. A real disc scan checks compatibility.")
+                DisclosureGroup("Advanced", isExpanded: $advanced) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("DiscShift uses HandBrakeCLI to read and encode video. Change its location if you installed your own copy.")
+                            .font(.callout).foregroundStyle(.secondary)
+                        HStack {
+                            TextField("Reader executable", text: $model.executable).textFieldStyle(.roundedBorder)
+                            Button("Choose…") { model.chooseEngine() }
+                        }
+                        TextField("DVD support folder", text: $model.libraryDirectory).textFieldStyle(.roundedBorder)
+                        Text("Extra DVD support uses libdvdcss. The reader and DVD support must match your Mac’s architecture.")
+                            .font(.callout).foregroundStyle(.secondary)
+                    }.padding(.top, 8)
+                }
             }
         }
         .formStyle(.grouped).frame(width: 560, height: 650).disabled(model.busy || model.updateInstallationPending)

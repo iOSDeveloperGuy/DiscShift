@@ -30,19 +30,19 @@ import SwiftUI
     private weak var model: AppModel?
     private let gate = UpdateActivityGate()
     private var observation: AnyCancellable?
-    private var controller: SPUStandardUpdaterController!
+    private var updateEngine: SPUUpdater?
+    private var userDriver: SPUStandardUserDriver?
     private var started = false
 
-    override init() {
-        super.init()
-        controller = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: self, userDriverDelegate: nil)
-        controller.updater.publisher(for: \.canCheckForUpdates).assign(to: &$canCheck)
-        controller.updater.publisher(for: \.automaticallyChecksForUpdates).assign(to: &$automaticallyChecks)
-        controller.updater.publisher(for: \.automaticallyDownloadsUpdates).assign(to: &$automaticallyDownloads)
-    }
-
-    func attach(to model: AppModel) {
+    func attach(to model: AppModel, hostBundle: Bundle = .main) {
         guard observation == nil else { return }
+        let driver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: nil)
+        userDriver = driver
+        let updater = SPUUpdater(hostBundle: hostBundle, applicationBundle: hostBundle, userDriver: driver, delegate: self)
+        updateEngine = updater
+        updater.publisher(for: \.canCheckForUpdates).assign(to: &$canCheck)
+        updater.publisher(for: \.automaticallyChecksForUpdates).assign(to: &$automaticallyChecks)
+        updater.publisher(for: \.automaticallyDownloadsUpdates).assign(to: &$automaticallyDownloads)
         self.model = model
         observation = Publishers.CombineLatest3(model.$busy, model.setup.$isWorking, model.$showingSetup)
             .sink { [weak self] _, _, _ in
@@ -58,14 +58,14 @@ import SwiftUI
     }
 
     private func startIfNeeded() {
-        guard !started else { return }
+        guard !started, let updateEngine else { return }
         started = true
-        do { try controller.updater.start() }
+        do { try updateEngine.start() }
         catch { unavailableReason = error.localizedDescription }
     }
-    func check() { controller.checkForUpdates(nil) }
-    func setAutomaticChecks(_ value: Bool) { controller.updater.automaticallyChecksForUpdates = value }
-    func setAutomaticDownloads(_ value: Bool) { controller.updater.automaticallyDownloadsUpdates = value }
+    func check() { updateEngine?.checkForUpdates() }
+    func setAutomaticChecks(_ value: Bool) { updateEngine?.automaticallyChecksForUpdates = value }
+    func setAutomaticDownloads(_ value: Bool) { updateEngine?.automaticallyDownloadsUpdates = value }
 
     func updater(_ updater: SPUUpdater, mayPerform updateCheck: SPUUpdateCheck) throws {
         try requireIdle()

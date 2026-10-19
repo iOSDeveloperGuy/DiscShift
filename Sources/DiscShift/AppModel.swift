@@ -131,7 +131,7 @@ private struct OrderSnapshot: Equatable {
     var exportHint: String? {
         guard let source else { return "Open a source to begin." }
         if !FileManager.default.fileExists(atPath: source.path) { return "Reconnect your source to continue." }
-        if !FileManager.default.isExecutableFile(atPath: executable) { return "Choose HandBrakeCLI in Settings." }
+        if !FileManager.default.isExecutableFile(atPath: executable) { return "Set up your DVD reader in Settings." }
         if selectedCount == 0 { return "Select at least one title." }
         if let message = libraryValidationMessage { return message }
         if needsSubtitleDecision { return "Choose how to handle picture subtitles, or use MKV to keep them selectable." }

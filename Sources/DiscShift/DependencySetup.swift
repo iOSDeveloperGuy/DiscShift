@@ -53,7 +53,7 @@ enum ReaderLocations {
             do {
                 try await verify(reader: reader, library: library)
             } catch is CancellationError { message = "Check canceled. You can try again whenever you’re ready." }
-            catch { message = "We couldn’t verify this reader. Install HandBrakeCLI or choose another copy, then check again." }
+            catch { message = "Your reader isn’t ready yet. Try installing it, or choose another copy in Advanced." }
         }
     }
     private func verify(reader: String, library: String) async throws {
@@ -74,7 +74,7 @@ enum ReaderLocations {
         guard !canceled else { throw CancellationError() }
         supportsHEVC = output.contains("vt_h265"); supportsH264 = output.contains("vt_h264")
         guard supportsHEVC || supportsH264 else {
-            message = "This reader doesn’t offer Apple hardware encoding. Install a current macOS build of HandBrakeCLI, then check again."
+            message = "This reader can’t use your Mac’s hardware encoding. Install a newer reader or choose another copy in Advanced."
             return
         }
         version = foundVersion; verifiedReader = reader; verifiedLibrary = library
@@ -102,7 +102,7 @@ enum ReaderLocations {
             } catch is CancellationError {
                 message = "Installation stopped. Anything already installed stays on this Mac. Check again to see what’s ready."
             } catch {
-                message = "Installation couldn’t finish. You can retry, download HandBrakeCLI directly, or review the installation details below."
+                message = "Installation couldn’t finish. Try again, or open Details below for help. You can also choose a downloaded reader in Advanced."
             }
         }
     }

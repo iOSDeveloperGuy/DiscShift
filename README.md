@@ -10,22 +10,22 @@ DiscShift guides you from disc to library: identify a show online, confirm the e
 
 ## Download
 
-Get the Mac app from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases). Extract the ZIP and move DiscShift to Applications.
+Get the Mac app from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases). Extract the ZIP and open DiscShift. Starting with 0.9.1, it installs itself in Applications and reopens there before setup. If the shared Applications folder isn’t writable, it uses Applications in your home folder. You can still move it there yourself before opening it.
 
-**Signed and notarized:** DiscShift 0.9.0 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
+**Signed and notarized:** DiscShift 0.9.1 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
 
 ## First-run setup
 
 The setup assistant checks your Mac before you start:
 
 1. **Check My Mac** finds an existing HandBrakeCLI reader, runs its version check, and checks that it advertises Apple hardware encoding.
-2. If the reader is missing or unusable, **Install Reader** uses an existing [Homebrew](https://brew.sh) installation to install the `handbrake` formula. If Homebrew is absent, setup links to the [official HandBrakeCLI download](https://handbrake.fr/downloads2.php) and lets you choose the downloaded executable. The graphical HandBrake app alone is not the command-line reader.
-3. **Extra DVD support** detects the optional `libdvdcss` library. With Homebrew installed, **Add DVD Support** installs its formula. Video files and unprotected DVDs can work without it. Library presence does not guarantee disc compatibility; the first real scan checks that.
+2. If the reader is missing or unusable, **Install DVD Reader** uses an existing [Homebrew](https://brew.sh) installation to install the `handbrake` formula. If Homebrew is absent, setup links to the [official HandBrakeCLI download](https://handbrake.fr/downloads2.php) and lets you choose the downloaded executable. The graphical HandBrake app alone is not the command-line reader.
+3. Reader installation includes its required components, which on the current Homebrew package also bring in DVD support. Setup shows **DVD support is included** when it is detected. A separate **Add DVD Support** option appears only after the reader passes its check and that support is still missing. Video files and unprotected DVDs can work without it. Library presence does not guarantee disc compatibility; the first real scan checks that.
 4. Review the online show-lookup preference, then start using DiscShift.
 
 Installations require an explicit button click. DiscShift does not bootstrap Homebrew or request an administrator password; it invokes your existing Homebrew executable directly. Installation details and retry controls stay available if something fails. Cancel stops the installation processes; components already installed remain on the Mac. Setup completion is saved only after the reader check passes. You can choose **Set Up Later** and reopen setup from **Help → Set Up DiscShift…** or Settings.
 
-HandBrakeCLI and libdvdcss are separate software with their own licenses; neither is included in this repository or the app download. Custom reader and DVD library locations are available in Advanced and Settings. The tools and libraries must match your Mac's architecture.
+HandBrakeCLI and libdvdcss are separate software with their own licenses; neither is included in this repository or the app download. Technical names, reader versions, custom locations, and installation logs stay in **Advanced** and **Details**. Settings also keeps custom reader and DVD-support locations inside **Advanced**. The tools and libraries must match your Mac's architecture.
 
 ## From disc to library
 
@@ -106,7 +106,7 @@ The reader test scans the chosen source, encodes six seconds, and requires an ac
 
 ## Validation and current limits
 
-Version 0.9.0 passes 53 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
+Version 0.9.1 passes 62 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
 
 Prior tests verified short physical-DVD hardware encodes, all four output containers, native decoding of Apple-container files, multiple audio tracks, text subtitles, and chapter data. A full physical episode, long-term audio sync, actual Jellyfin clients, Intel builds, and macOS 14 have not been validated. The app is currently distributed as a development preview.
 

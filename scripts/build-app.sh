@@ -66,7 +66,7 @@ assert len(base64.b64decode(config['publicEDKey'], validate=True)) == 32
 assert config['feedURL'].startswith('https://')
 path = Path(sys.argv[1]); info = plistlib.loads(path.read_bytes())
 info.update(CFBundleShortVersionString=version, CFBundleVersion=build,
-    SUFeedURL=config['feedURL'], SUPublicEDKey=config['publicEDKey'],
+    DSInstallOnLaunch=True, SUFeedURL=config['feedURL'], SUPublicEDKey=config['publicEDKey'],
     SUEnableAutomaticChecks=True, SUAutomaticallyUpdate=False,
     SUEnableSystemProfiling=False, SUVerifyUpdateBeforeExtraction=True,
     SURequireSignedFeed=True)
