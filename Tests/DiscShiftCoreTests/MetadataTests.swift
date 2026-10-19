@@ -45,7 +45,7 @@ final class MetadataTests: XCTestCase {
     }
     func testLiveMetadataLookupWhenExplicitlyEnabled() async throws {
         let env = ProcessInfo.processInfo.environment
-        guard (env["DISCSHIFT_TEST_METADATA"] ?? env["DISCDOCK_TEST_METADATA"]) == "1" else { throw XCTSkip("Set DISCSHIFT_TEST_METADATA=1 for live TVMaze verification") }
+        guard env["DISCSHIFT_TEST_METADATA"] == "1" else { throw XCTSkip("Set DISCSHIFT_TEST_METADATA=1 for live TVMaze verification") }
         let query = DiscLabelHint.query("ALLCREATURESGREATANDSMALLDISC1", words: DiscLabelHint.systemWords)
         let client = TVMazeClient()
         let shows = try await client.search(query: query)

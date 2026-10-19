@@ -59,7 +59,7 @@ final class AppTests: XCTestCase {
             XCTAssertEqual(model.jobs.last?.status, "Canceled")
             XCTAssertFalse(model.busy)
             for job in model.jobs { XCTAssertFalse(FileManager.default.fileExists(atPath: job.output.path)) }
-            let staging = model.destination!.appendingPathComponent(".discdock-staging")
+            let staging = model.destination!.appendingPathComponent(".discshift-staging")
             XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: staging.path), [])
         }
     }
@@ -217,7 +217,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(model.jobs.map(\.status), ["Failed", "Canceled"])
         XCTAssertTrue(model.error?.contains("did not confirm") == true)
         XCTAssertFalse(FileManager.default.fileExists(atPath: model.jobs[0].output.path))
-        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: model.destination!.appendingPathComponent(".discdock-staging").path), [])
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: model.destination!.appendingPathComponent(".discshift-staging").path), [])
     }
     @MainActor func testEveryContainerSetsPreviewStagingAndPublishedFilename() async throws {
         for container in ExportContainer.allCases {

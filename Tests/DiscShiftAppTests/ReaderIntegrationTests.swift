@@ -6,11 +6,7 @@ final class ReaderIntegrationTests: XCTestCase {
     /// Opt in with DISCSHIFT_TEST_SOURCE and DISCSHIFT_TEST_OUTPUT. Never runs on a
     /// user's mounted disc or writes an output without those explicit settings.
     @MainActor func testInstalledReaderScanAndEncode() async throws {
-        var env = ProcessInfo.processInfo.environment
-        for (key, value) in ProcessInfo.processInfo.environment where key.hasPrefix("DISCDOCK_TEST_") {
-            let renamed = key.replacingOccurrences(of: "DISCDOCK_TEST_", with: "DISCSHIFT_TEST_")
-            if env[renamed] == nil { env[renamed] = value }
-        }
+        let env = ProcessInfo.processInfo.environment
         guard let source = env["DISCSHIFT_TEST_SOURCE"], let output = env["DISCSHIFT_TEST_OUTPUT"] else {
             throw XCTSkip("Set DISCSHIFT_TEST_SOURCE and DISCSHIFT_TEST_OUTPUT for a real reader test")
         }

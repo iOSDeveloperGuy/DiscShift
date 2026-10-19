@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 @main @MainActor struct DiscShiftApp: App {
-    @StateObject private var model = AppModel()
+    @StateObject private var model = AppModel(defaults: SettingsStore.standard())
     @NSApplicationDelegateAdaptor(DiscShiftDelegate.self) private var appDelegate
     var body: some Scene {
         Window("DiscShift", id: "main") {

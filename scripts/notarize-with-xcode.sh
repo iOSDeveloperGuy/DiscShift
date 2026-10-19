@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 if [[ -z "${DEVELOPER_DIR:-}" && -d /Applications/Xcode.app/Contents/Developer ]]; then
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 fi
-export DISCSHIFT_SIGNING_IDENTITY="${DISCSHIFT_SIGNING_IDENTITY:-${DISCDOCK_SIGNING_IDENTITY:-}}"
+export DISCSHIFT_SIGNING_IDENTITY="${DISCSHIFT_SIGNING_IDENTITY:-}"
 [[ "$DISCSHIFT_SIGNING_IDENTITY" == "Developer ID Application:"* ]] || {
     printf 'Set DISCSHIFT_SIGNING_IDENTITY to an installed Developer ID Application certificate.\n' >&2
     exit 1

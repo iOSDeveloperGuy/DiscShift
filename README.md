@@ -2,7 +2,7 @@
 
 # DiscShift
 
-Previously called DiscDock. Existing app settings and library preferences are retained. The original bundle identifier and staging folder are kept for continuity; legacy `DISCDOCK_*` build and test variables are still accepted.
+DiscShift uses the app identifier `com.iosdeveloperguy.discshift`. On first launch it can import recognized settings from one matching app in the same publisher namespace, preserving setup and library preferences. Existing settings in the new app take priority.
 
 A native macOS app that turns DVD episodes into smaller, neatly named files for your Jellyfin TV library.
 
@@ -12,7 +12,7 @@ DiscShift guides you from disc to library: identify a show online, confirm the e
 
 Get the Mac app from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases). Extract the ZIP and move DiscShift to Applications.
 
-**Signed and notarized:** DiscShift 0.8.1 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated. The older DiscDock 0.8 release is retained as historical preview software.
+**Signed and notarized:** DiscShift 0.8.2 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
 
 ## First-run setup
 
@@ -60,7 +60,7 @@ An optional release year is included in the show folder. DiscShift does not cont
 
 HandBrake re-encodes video; DiscShift has no lossless extraction mode. Existing exports are not automatically converted. Test representative content before exporting a collection.
 
-Exports run sequentially. Incomplete files are kept in `.discdock-staging` under your destination, then moved into the season folder after successful encoding and hardware confirmation. **Existing final files are never overwritten.** Cancel removes the current incomplete output and preserves completed episodes. A failure stops subsequent jobs. A force quit or power loss can leave staging files behind; these can be removed when no export is running. Jobs are not persistent or resumable.
+Exports run sequentially. Incomplete files are kept in `.discshift-staging` under your destination, then moved into the season folder after successful encoding and hardware confirmation. **Existing final files are never overwritten.** Cancel removes the current incomplete output and preserves completed episodes. A failure stops subsequent jobs. A force quit or power loss can leave staging files behind; these can be removed when no export is running. Jobs are not persistent or resumable.
 
 ## Show metadata and privacy
 
@@ -106,7 +106,7 @@ The reader test scans the chosen source, encodes six seconds, and requires an ac
 
 ## Validation and current limits
 
-Version 0.8.1 passes 43 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
+Version 0.8.2 passes 49 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
 
 Prior tests verified short physical-DVD hardware encodes, all four output containers, native decoding of Apple-container files, multiple audio tracks, text subtitles, and chapter data. A full physical episode, long-term audio sync, actual Jellyfin clients, Intel builds, and macOS 14 have not been validated. The app is currently distributed as a development preview.
 

@@ -3,8 +3,8 @@
 # accepts passwords or API private keys as arguments and never publishes a release.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export DISCSHIFT_SIGNING_IDENTITY="${DISCSHIFT_SIGNING_IDENTITY:-${DISCDOCK_SIGNING_IDENTITY:-}}"
-export DISCSHIFT_NOTARY_PROFILE="${DISCSHIFT_NOTARY_PROFILE:-${DISCDOCK_NOTARY_PROFILE:-}}"
+export DISCSHIFT_SIGNING_IDENTITY="${DISCSHIFT_SIGNING_IDENTITY:-}"
+export DISCSHIFT_NOTARY_PROFILE="${DISCSHIFT_NOTARY_PROFILE:-}"
 if [[ -z "${DEVELOPER_DIR:-}" && -d /Applications/Xcode.app/Contents/Developer ]]; then
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 fi

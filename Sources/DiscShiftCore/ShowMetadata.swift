@@ -63,7 +63,7 @@ public struct TVMazeClient: ShowMetadataProviding {
         for attempt in 0...1 {
             try Task.checkCancellation()
             var request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 15)
-            request.setValue("DiscShift/0.8.1 (macOS)", forHTTPHeaderField: "User-Agent")
+            request.setValue("DiscShift/0.8.2 (macOS)", forHTTPHeaderField: "User-Agent")
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             let (data, response) = try await session.data(for: request)
             guard let response = response as? HTTPURLResponse else { throw MetadataFailure("The lookup service returned an unreadable response.") }

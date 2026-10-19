@@ -356,7 +356,7 @@ private struct OrderSnapshot: Equatable {
                 let job = jobs[index]
                 let folder = job.output.deletingLastPathComponent()
                 // Keep incomplete files out of the Jellyfin season folder.
-                let temporaryFolder = destination.appendingPathComponent(".discdock-staging", isDirectory: true)
+                let temporaryFolder = destination.appendingPathComponent(".discshift-staging", isDirectory: true)
                 let temporary = temporaryFolder.appendingPathComponent("\(UUID().uuidString).\(job.container.fileExtension)")
                 do {
                     guard !FileManager.default.fileExists(atPath: job.output.path) else {
