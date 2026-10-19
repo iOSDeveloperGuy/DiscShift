@@ -12,28 +12,9 @@ Find your show, check the episode order, and choose where to save. DiscShift use
 
 Apple Silicon · macOS 14 or later · Signed and notarized · Development preview
 
-![DiscShift reviewing three DVD titles, their durations, and suggested episode names before confirming the order](docs/screenshots/episode-order.jpg)
+![DiscShift reviewing three DVD titles, their durations, and suggested episode names before confirming the order](docs/screenshots/episode-order.png)
 
 Match each title to the right episode before exporting. Online episode names are suggestions; you confirm the DVD order.
-
-## A guided workflow
-
-<table>
-  <tr>
-    <th>Find your show</th>
-    <th>Choose your export</th>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/show-lookup.jpg" width="460" alt="DiscShift finding the 1978 and 2020 versions of All Creatures Great and Small"></td>
-    <td><img src="docs/screenshots/export-options.jpg" width="460" alt="DiscShift reviewing filenames, estimated sizes, file format, and Apple hardware encoding before export"></td>
-  </tr>
-  <tr>
-    <td>Identify the correct series and load its episode names, or enter details yourself.</td>
-    <td>Preview filenames and estimated sizes, then pick the format and quality you want.</td>
-  </tr>
-</table>
-
-Screenshots from DiscShift 0.9.2. [More about the screenshots](docs/screenshots/README.md).
 
 ## Download
 
