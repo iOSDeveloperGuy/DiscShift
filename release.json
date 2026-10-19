@@ -1,6 +1,6 @@
 {
-  "version": "0.9.1",
-  "build": 13,
+  "version": "0.9.2",
+  "build": 14,
   "prerelease": true,
   "feedURL": "https://raw.githubusercontent.com/iOSDeveloperGuy/DiscShift/updates/appcast.xml",
   "publicEDKey": "sbp6obYfL+3Fk6UjCN4/FMhQirAZI9mvhJ6csUfAjUc="

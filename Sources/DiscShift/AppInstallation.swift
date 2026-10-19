@@ -59,6 +59,39 @@ struct AppBundleInstaller {
         return incoming.compare(installed, options: .numeric) == .orderedDescending
     }
 
+    /// A browser download may run from AppTranslocation, so its running URL
+    /// isn't the original file. Only retire physical copies whose complete
+    /// signatures and code identity match the installed app. Never infer an
+    /// original path from a private translocation API or remove quarantine.
+    @discardableResult
+    static func retireDownloadedCopies(source: URL, installed: URL, downloads: URL, desktop: URL,
+                                       verify: (URL, URL) -> Bool = isSameSignedCopy,
+                                       trash: (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) }) -> [URL] {
+        let fm = FileManager.default
+        guard verify(source, installed) else { return [] }
+        let installedPath = installed.resolvingSymlinksInPath().standardizedFileURL
+        var candidates = Set<URL>()
+        // The normal ZIP extracts directly into Downloads. Inspect only apps
+        // at that level; leave ZIPs, unrelated folders, and other versions alone.
+        for item in (try? fm.contentsOfDirectory(at: downloads, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
+            where item.pathExtension.lowercased() == "app" {
+            candidates.insert(item.standardizedFileURL)
+        }
+        // Preserve support for a known source inside a nested Downloads folder
+        // or Desktop, without recursively reading either user folder.
+        if isInstalled(source, in: [downloads, desktop]) { candidates.insert(source.standardizedFileURL) }
+        var retired: [URL] = []
+        for candidate in candidates.sorted(by: { $0.path < $1.path }) {
+            guard candidate.resolvingSymlinksInPath().standardizedFileURL != installedPath,
+                  let type = try? fm.attributesOfItem(atPath: candidate.path)[.type] as? FileAttributeType,
+                  type == .typeDirectory,
+                  verify(candidate, installed) else { continue }
+            do { try trash(candidate); retired.append(candidate) }
+            catch { /* Cleanup must not prevent using a successfully installed app. */ }
+        }
+        return retired
+    }
+
     /// Never remove the source. Stage and validate the whole app before touching
     /// an existing copy, retaining that copy until placement succeeds.
     static func install(source: URL, destination: URL, replace: Bool = false,
@@ -144,6 +177,7 @@ struct AppBundleInstaller {
                 let candidate = directory.appendingPathComponent("DiscShift.app")
                 if AppBundleInstaller.isSameSignedCopy(source, candidate), let bundle = Bundle(url: candidate) {
                     hostBundle = bundle
+                    retireDownloadedSource(matching: candidate)
                     isReady = true
                     return
                 }
@@ -182,14 +216,14 @@ struct AppBundleInstaller {
                 }
                 let choice = alert.runModal()
                 if !canReplace {
-                    if choice == .alertFirstButtonReturn { await reopen(destination, replacing: false) }
+                    if choice == .alertFirstButtonReturn { await reopen(destination) }
                     else { isReady = true }
                     return
                 }
                 switch choice {
                 case .alertFirstButtonReturn: replace = true
                 case .alertSecondButtonReturn:
-                    await reopen(destination, replacing: false)
+                    await reopen(destination)
                     return
                 default:
                     isReady = true
@@ -206,7 +240,7 @@ struct AppBundleInstaller {
                     }
                 })
             installedURL = destination
-            await reopen(destination, replacing: true)
+            await reopen(destination)
         } catch {
             self.error = (error as? AppBundleInstaller.InstallationError)?.localizedDescription
                 ?? "DiscShift couldn’t move into Applications. Check that you have space and can save files there, then try again."
@@ -220,9 +254,10 @@ struct AppBundleInstaller {
         }
     }
 
-    private func reopen(_ destination: URL, replacing: Bool) async {
+    private func reopen(_ destination: URL) async {
         if let existing = runningCopy(at: destination) {
             existing.activate(options: [.activateAllWindows])
+            retireDownloadedSource(matching: destination)
             NSApp.terminate(nil)
             return
         }
@@ -243,7 +278,7 @@ struct AppBundleInstaller {
                     try? FileManager.default.removeItem(at: backupURL.deletingLastPathComponent())
                 }
             }
-            if replacing { retireDownloadedSource() }
+            retireDownloadedSource(matching: destination)
             NSApp.terminate(nil)
         } catch {
             self.error = AppBundleInstaller.InstallationError.reopenFailed.localizedDescription
@@ -251,19 +286,16 @@ struct AppBundleInstaller {
         }
     }
 
-    private func retireDownloadedSource() {
+    private func retireDownloadedSource(matching destination: URL) {
         let fm = FileManager.default
-        // Never delete a project build, a mounted disk's contents, or a
-        // translocated original whose actual download path isn't known.
-        let folders = [fm.homeDirectoryForCurrentUser.appendingPathComponent("Downloads"),
-                       fm.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")]
-        if AppBundleInstaller.isInstalled(source, in: folders) {
-            try? fm.trashItem(at: source, resultingItemURL: nil)
-        }
+        let home = fm.homeDirectoryForCurrentUser
+        let downloads = fm.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? home.appendingPathComponent("Downloads")
+        let desktop = fm.urls(for: .desktopDirectory, in: .userDomainMask).first ?? home.appendingPathComponent("Desktop")
+        AppBundleInstaller.retireDownloadedCopies(source: source, installed: destination, downloads: downloads, desktop: desktop)
     }
     func retry() async {
         error = nil
-        if let installedURL { await reopen(installedURL, replacing: false) }
+        if let installedURL { await reopen(installedURL) }
         else { started = false; await prepare() }
     }
     func continueHere() { isReady = true }

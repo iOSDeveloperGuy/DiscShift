@@ -12,7 +12,9 @@ DiscShift guides you from disc to library: identify a show online, confirm the e
 
 Get the Mac app from [Releases](https://github.com/iOSDeveloperGuy/DiscShift/releases). Extract the ZIP and open DiscShift. Starting with 0.9.1, it installs itself in Applications and reopens there before setup. If the shared Applications folder isn’t writable, it uses Applications in your home folder. You can still move it there yourself before opening it.
 
-**Signed and notarized:** DiscShift 0.9.1 is signed with Developer ID, notarized by Apple, and includes a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
+After the installed copy opens successfully, DiscShift moves matching app copies from Downloads to Trash. Starting with 0.9.2, this also handles Safari downloads that macOS runs from a protected temporary location. ZIP archives and other versions are kept. Cleanup leaves macOS quarantine intact; if folder access is denied, the app remains usable and the download can be removed in Finder.
+
+**Signed and notarized:** Public DiscShift releases are signed with Developer ID, notarized by Apple, and include a stapled ticket. The release ZIP retains that ticket after extraction and passes Gatekeeper assessment. This is an Apple Silicon preview for macOS 14 and later. Full physical-episode export, Intel support, and Jellyfin client playback remain to be validated.
 
 ## First-run setup
 
@@ -106,7 +108,7 @@ The reader test scans the chosen source, encodes six seconds, and requires an ac
 
 ## Validation and current limits
 
-Version 0.9.1 passes 62 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
+Version 0.9.2 passes 67 automated tests; two live tests are opt-in and skipped in normal runs. See [VALIDATION.md](VALIDATION.md) for observed results and remaining checks, and [1.0 readiness](docs/1.0-READINESS.md) for the release gates. The current setup checks were exercised with an installed HandBrakeCLI on Apple Silicon. Installation success, failure, and cancellation are tested with isolated simulated installers; a fresh dependency installation on a clean Mac has not been validated.
 
 Prior tests verified short physical-DVD hardware encodes, all four output containers, native decoding of Apple-container files, multiple audio tracks, text subtitles, and chapter data. A full physical episode, long-term audio sync, actual Jellyfin clients, Intel builds, and macOS 14 have not been validated. The app is currently distributed as a development preview.
 

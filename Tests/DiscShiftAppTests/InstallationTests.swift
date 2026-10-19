@@ -95,4 +95,70 @@ final class InstallationTests: XCTestCase {
         try app(destination, build: "14")
         XCTAssertFalse(AppBundleInstaller.isNewer(source, than: destination))
     }
+
+    private func matchingFixture(_ lhs: URL, _ rhs: URL) -> Bool {
+        guard let first = AppBundleInstaller.info(at: lhs), let second = AppBundleInstaller.info(at: rhs) else { return false }
+        return first["CFBundleIdentifier"] as? String == AppBundleInstaller.applicationID &&
+            second["CFBundleIdentifier"] as? String == AppBundleInstaller.applicationID &&
+            first["CFBundleVersion"] as? String == second["CFBundleVersion"] as? String
+    }
+    func testTranslocatedLaunchRetiresOnlyMatchingDownloadedApps() throws {
+        let root = try fixture(), downloads = root.appendingPathComponent("Downloads"), desktop = root.appendingPathComponent("Desktop")
+        let source = root.appendingPathComponent("AppTranslocation/random/d/DiscShift.app"), installed = root.appendingPathComponent("Applications/DiscShift.app")
+        try app(source, build: "14"); try app(installed, build: "14")
+        let original = downloads.appendingPathComponent("DiscShift.app"), duplicate = downloads.appendingPathComponent("DiscShift 2.app")
+        let other = downloads.appendingPathComponent("Other.app"), older = downloads.appendingPathComponent("Older.app")
+        try app(original, build: "14"); try app(duplicate, build: "14")
+        try app(other, build: "14", id: "com.example.other"); try app(older, build: "13")
+        let zip = downloads.appendingPathComponent("DiscShift.zip")
+        try Data("keep archive".utf8).write(to: zip)
+        var retired: [URL] = []
+        AppBundleInstaller.retireDownloadedCopies(source: source, installed: installed, downloads: downloads, desktop: desktop,
+            verify: matchingFixture, trash: { retired.append($0) })
+        XCTAssertEqual(Set(retired.map(\.path)), Set([original.path, duplicate.path]))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: installed.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: zip.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: older.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: other.path))
+    }
+    func testCleanupRequiresTheInstalledCopyToMatchTheRunningApp() throws {
+        let root = try fixture(), source = root.appendingPathComponent("Downloads/DiscShift.app"), installed = root.appendingPathComponent("Applications/DiscShift.app")
+        try app(source, build: "14"); try app(installed, build: "13")
+        var called = false
+        let retired = AppBundleInstaller.retireDownloadedCopies(source: source, installed: installed, downloads: source.deletingLastPathComponent(), desktop: root.appendingPathComponent("Desktop"),
+            verify: matchingFixture, trash: { _ in called = true })
+        XCTAssertFalse(called); XCTAssertTrue(retired.isEmpty)
+    }
+    func testCleanupPreservesSymlinksAndExternalProjectBuilds() throws {
+        let root = try fixture(), downloads = root.appendingPathComponent("Downloads"), source = root.appendingPathComponent("Project/DiscShift.app"), installed = root.appendingPathComponent("Applications/DiscShift.app")
+        try app(source, build: "14"); try app(installed, build: "14")
+        try FileManager.default.createDirectory(at: downloads, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: downloads.appendingPathComponent("DiscShift.app"), withDestinationURL: source)
+        var called = false
+        AppBundleInstaller.retireDownloadedCopies(source: source, installed: installed, downloads: downloads, desktop: root.appendingPathComponent("Desktop"),
+            verify: matchingFixture, trash: { _ in called = true })
+        XCTAssertFalse(called)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+    }
+    func testKnownNestedDownloadAndDesktopSourceCanBeRetired() throws {
+        let root = try fixture(), downloads = root.appendingPathComponent("Downloads"), desktop = root.appendingPathComponent("Desktop"), installed = root.appendingPathComponent("Applications/DiscShift.app")
+        try app(installed, build: "14")
+        for source in [downloads.appendingPathComponent("Extracted/DiscShift.app"), desktop.appendingPathComponent("DiscShift.app")] {
+            try app(source, build: "14")
+            var retired: [URL] = []
+            AppBundleInstaller.retireDownloadedCopies(source: source, installed: installed, downloads: downloads, desktop: desktop,
+                verify: matchingFixture, trash: { retired.append($0) })
+            XCTAssertEqual(retired.map(\.path), [source.path])
+        }
+    }
+    func testCleanupFailureKeepsTheDownloadAndDoesNotBlockTheInstalledApp() throws {
+        let root = try fixture(), source = root.appendingPathComponent("Downloads/DiscShift.app"), installed = root.appendingPathComponent("Applications/DiscShift.app")
+        try app(source, build: "14"); try app(installed, build: "14")
+        let retired = AppBundleInstaller.retireDownloadedCopies(source: source, installed: installed, downloads: source.deletingLastPathComponent(), desktop: root.appendingPathComponent("Desktop"),
+            verify: matchingFixture, trash: { _ in throw CocoaError(.fileWriteNoPermission) })
+        XCTAssertTrue(retired.isEmpty)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: installed.path))
+    }
 }
